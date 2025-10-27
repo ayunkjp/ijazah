@@ -88,20 +88,24 @@
               </select>
             </div>
             <div class="mb-2">
+              <label for="judul" class="form-label small"><strong>Judul Tugas Akhir</strong></label>
+              <input type="text" class="form-control" id="judul" name="judul" required  />
+            </div>
+            <div class="mb-2">
+              <label for="noijazah" class="form-label small"><strong>No Ijazah</strong></label>
+              <input type="text" class="form-control" id="noijazah" name="noijazah" required  />
+            </div>
+            <div class="mb-2">
+              <label for="notranskip" class="form-label small"><strong>No Transkip</strong></label>
+              <input type="text" class="form-control" id="notranskip" name="notranskip" required  />
+            </div>
+            <div class="mb-2">
               <label for="tglyudisium" class="form-label small"><strong>Tanggal Yudisium</strong></label>
               <input type="date" class="form-control" id="tglyudisium" name="tglyudisium" required  />
             </div>
             <div class="mb-2">
-              <label for="tglyudisium_en" class="form-label small"><strong>Tanggal Yudisium En</strong></label>
-              <input type="date" class="form-control" id="tglyudisium_en" name="tglyudisium_en" required  />
-            </div>
-            <div class="mb-2">
               <label for="tglwisuda" class="form-label small"><strong>Tanggal Wisuda</strong></label>
               <input type="date" class="form-control" id="tglwisuda" name="tglwisuda" required  />
-            </div>
-            <div class="mb-2">
-              <label for="tglwisuda_en" class="form-label small"><strong>Tanggal Wisuda En</strong></label>
-              <input type="date" class="form-control" id="tglwisuda_en" name="tglwisuda_en" required  />
             </div>
           </div>
           <div class="modal-footer">
@@ -146,10 +150,11 @@
                   <th>Tampar Lahir</th>
                   <th>Tanggal Lahir</th>
                   <th>Jenis Kelamin</th>
+                  <th>Judul</th>
+                  <th>No Ijazah</th>
+                  <th>No Transkip</th>
                   <th>Tanggal Yudisium</th>
-                  <th>Tanggal Yudisium En</th>
                   <th>Tanggal Wisuda</th>
-                  <th>Tanggal Wisuda En</th>
                   <th>Program Studi</th>
                   <th>Action</th>
                 </tr>
@@ -164,10 +169,11 @@
                   <td>{{ m.tempatlahir }}</td>
                   <td>{{ m.tgllahir }}</td>
                   <td>{{ m.jeniskelamin }}</td>
+                  <td>{{ m.judul }}</td>
+                  <td>{{ m.noijazah }}</td>
+                  <td>{{ m.notranskip }}</td>
                   <td>{{ m.tglyudisium }}</td>
-                  <td>{{ m.tglyudisium_en }}</td>
                   <td>{{ m.tglwisuda }}</td>
-                  <td>{{ m.tglwisuda_en }}</td>
                   <td>{{ m.prodi.namaprodi }}</td>
                   <td>
                     <!--Modal Update Data-->
@@ -284,6 +290,45 @@
                                 </select>
                               </div>
                               <div class="mb-2">
+                                <label for="judul" class="form-label"
+                                  >Judul Tugas Akhir</label
+                                >
+                                <input
+                                  type="tex"
+                                  class="form-control"
+                                  id="judul"
+                                  name="judul"
+                                  value="{{ m.judul }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="noijazah" class="form-label"
+                                  >No Ijazah</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="noijazah"
+                                  name="noijazah"
+                                  value="{{ m.noijazah }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="notranskip" class="form-label"
+                                  >No Transkip</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="notranskip"
+                                  name="notranskip"
+                                  value="{{ m.notranskip }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
                                 <label for="tglyudisium" class="form-label"
                                   >Tanggal Yudisium</label
                                 >
@@ -293,19 +338,6 @@
                                   id="tglyudisium"
                                   name="tglyudisium"
                                   value="{{ m.tglyudisium|date:'Y-m-d' }}"
-                                  required
-                                />
-                              </div>
-                              <div class="mb-2">
-                                <label for="tglyudisium_en" class="form-label"
-                                  >Tanggal Yudisium En</label
-                                >
-                                <input
-                                  type="date"
-                                  class="form-control"
-                                  id="tglyudisium_en"
-                                  name="tglyudisium_en"
-                                  value="{{ m.tglyudisium_en|date:'Y-m-d' }}"
                                   required
                                 />
                               </div>
@@ -322,20 +354,6 @@
                                   required
                                 />
                               </div>
-                              <div class="mb-2">
-                                <label for="tglwisuda_en" class="form-label"
-                                  >Tanggal Wisuda En</label
-                                >
-                                <input
-                                  type="date"
-                                  class="form-control"
-                                  id="tglwisuda_en"
-                                  name="tglwisuda_en"
-                                  value="{{ m.tglwisuda_en|date:'Y-m-d' }}"
-                                  required
-                                />
-                              </div>
-                              
                               <hr>
                               <button
                                 type="submit"
@@ -454,7 +472,7 @@
       scrollCollapse: true,
       paging: false,
       scrollY: "500px",
-      searching: false,
+      searching: true,
     });
   });
 </script>

@@ -4,24 +4,29 @@
   <h4 class="mb-3">Daftar Nilai Mahasiswa</h4>
 
   <form method="get" class="mb-3 d-flex gap-2">
-  <select name="prodi" id="prodi" class="form-select" onchange="this.form.submit()">
-    <option value="">-- Pilih Program Studi --</option>
-    {% for p in prodi_list %}
-      <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>
-        {{ p.namaprodi }}
-      </option>
-    {% endfor %}
-  </select>
+      <select name="prodi" id="prodi" class="form-select">
+      <option value="">-- Pilih Program Studi --</option>
+      {% for p in prodi_list %}
+        <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>
+          {{ p.namaprodi }}
+        </option>
+      {% endfor %}
+    </select>
 
-  <select name="mahasiswa" id="mahasiswa" class="form-select" onchange="this.form.submit()">
-    <option value="">-- Semua Mahasiswa --</option>
-    {% for mhs in mahasiswa_list %}
-      <option value="{{ mhs.id }}" {% if mhs.id|stringformat:'s' == selected_mahasiswa %}selected{% endif %}>
-        {{ mhs.nama }}
-      </option>
-    {% endfor %}
-  </select>
-</form>
+    <select name="mahasiswa" id="mahasiswa" class="form-select" {% if not selected_prodi %}disabled{% endif %}>
+      {% if not selected_prodi %}
+        <option value="">-- Pilih Program Studi terlebih dahulu --</option>
+      {% else %}
+        <option value="">-- Semua Mahasiswa --</option>
+        {% for mhs in mahasiswa_list %}
+          <option value="{{ mhs.id }}" {% if mhs.id|stringformat:'s' == selected_mahasiswa %}selected{% endif %}>
+            {{ mhs.nama }}
+          </option>
+        {% endfor %}
+      {% endif %}
+    </select>
+    <button type="submit" class="btn btn-primary">Tampilkan</button>
+  </form>
 <p><strong>IPK:</strong> {{ nilai_list.first.mahasiswa.hitung_ipk }}</p>
 <td>{{ n.mahasiswa.hitung_ipk }}</td>
 
@@ -58,4 +63,27 @@
   </tbody>
 </table>
 </div>
-{% endblock %}
+{% endblock content %}
+{% block add_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const prodiSelect = document.getElementById("prodi");
+    const mhsSelect = document.getElementById("mahasiswa");
+
+    // Jika belum pilih prodi, disable mahasiswa
+    if (!prodiSelect.value) {
+      mhsSelect.disabled = true;
+    }
+
+    // Jika prodi dipilih, enable mahasiswa dan auto submit
+    prodiSelect.addEventListener("change", function() {
+      if (this.value) {
+        mhsSelect.disabled = false;
+        this.form.submit(); // reload halaman untuk load mahasiswa sesuai prodi
+      } else {
+        mhsSelect.disabled = true;
+      }
+    });
+  });
+</script>
+{% endblock add_js %}

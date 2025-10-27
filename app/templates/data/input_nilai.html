@@ -56,9 +56,10 @@
             <td>{{ mk.namamk }}</td>
             <td>{{ mk.sks }}</td>
             <td>
+              <input type="hidden" name="matakuliah_id" value="{{ mk.id }}">
               <input 
                 type="text" 
-                name="nilai_{{ mk.id }}" 
+                name="nilai_huruf" 
                 value="{{ nilai_skrg }}" 
                 class="form-control form-control-sm"
               >

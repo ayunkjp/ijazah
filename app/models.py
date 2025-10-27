@@ -57,6 +57,9 @@ class Mahasiswa(models.Model):
     prodi = models.ForeignKey(Prodi, on_delete=models.CASCADE, related_name='mahasiswa')
     nim = models.CharField(max_length=20, unique=True)
     nama = models.CharField(max_length=150)
+    judul = models.CharField(max_length=255)
+    noijazah = models.CharField(max_length=25)
+    notranskip = models.CharField(max_length=25)
     nik = models.CharField(max_length=20)
     tempatlahir = models.CharField(max_length=100)
     tgllahir = models.DateField()
@@ -65,10 +68,7 @@ class Mahasiswa(models.Model):
         choices=[('L', 'Laki-laki'), ('P', 'Perempuan')]
     )
     tglyudisium = models.DateField(blank=True, null=True)
-    tglyudisium_en = models.DateField(blank=True, null=True)
     tglwisuda = models.DateField(blank=True, null=True)
-    tglwisuda_en = models.DateField(blank=True, null=True)
-
     class Meta:
         verbose_name_plural = "Mahasiswa"
 

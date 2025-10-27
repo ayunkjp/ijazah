@@ -16,6 +16,9 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.pdfbase.ttfonts import TTFont
 import io
 import os
+from django.db.models import IntegerField, F
+from django.db.models.functions import Cast, Substr, Length
+
 
 # Create your views here.
 def login_view(request):
@@ -209,11 +212,12 @@ def mahasiswa_add(request):
         nik = request.POST.get("nik")
         tempatlahir = request.POST.get("tempatlahir")
         tgllahir = request.POST.get("tgllahir")
+        judul = request.POST.get("judul")
+        noijazah = request.POST.get("noijazah")
+        notranskip = request.POST.get("notranskip")
         jeniskelamin = request.POST.get("jeniskelamin")
         tglyudisium = request.POST.get("tglyudisium")
-        tglyudisium_en = request.POST.get("tglyudisium_en")
         tglwisuda = request.POST.get("tglwisuda")
-        tglwisuda_en = request.POST.get("tglwisuda_en")
 
         if not prodi_id or not nim:
             messages.error(request, "Prodi dan Kode Prodi wajib diisi!")
@@ -228,11 +232,12 @@ def mahasiswa_add(request):
             nik=nik,
             tempatlahir=tempatlahir,
             tgllahir=tgllahir,
+            judul=judul,
+            noijazah=noijazah,
+            notranskip=notranskip,
             jeniskelamin=jeniskelamin,
             tglyudisium=tglyudisium,
-            tglyudisium_en=tglyudisium_en,
             tglwisuda=tglwisuda,
-            tglwisuda_en=tglwisuda_en,
         )
 
         messages.success(request, f"Mahasiswa '{nama}' berhasil ditambahkan.")
@@ -256,11 +261,12 @@ def update_mahasiswa(request, id):
         mahasiswa.nik = request.POST.get('nik')
         mahasiswa.tempatlahir = request.POST.get('tempatlahir')
         mahasiswa.tgllahir = request.POST.get('tgllahir')
+        mahasiswa.judul = request.POST.get('judul')
+        mahasiswa.noijazah = request.POST.get('noijazah')
+        mahasiswa.notranskip = request.POST.get('notranskip')
         mahasiswa.jeniskelamin = request.POST.get('jeniskelamin')
         mahasiswa.tglyudisium = request.POST.get('tglyudisium')
-        mahasiswa.tglyudisium_en = request.POST.get('tglyudisium_en')
         mahasiswa.tglwisuda = request.POST.get('tglwisuda')
-        mahasiswa.tglwisuda_en = request.POST.get('tglwisuda_en')
 
         mahasiswa.save()
         messages.success(request, 'Data Program Studi berhasil diperbarui!')
@@ -409,21 +415,29 @@ def nilai_list(request):
     prodi_id = request.GET.get('prodi')
     mahasiswa_id = request.GET.get('mahasiswa')
 
+    # dropdown data
     prodi_list = Prodi.objects.all().order_by('namaprodi')
     mahasiswa_list = Mahasiswa.objects.all().order_by('nama')
+
     if prodi_id:
         mahasiswa_list = mahasiswa_list.filter(prodi_id=prodi_id)
 
-    nilai_list = (
-        Nilai.objects
-        .select_related('mahasiswa', 'matakuliah', 'mahasiswa__prodi')
-        .order_by('mahasiswa__nama', 'matakuliah__kodemk')
-    )
+    # default: kosong dulu
+    nilai_list = Nilai.objects.none()
 
-    if prodi_id:
-        nilai_list = nilai_list.filter(mahasiswa__prodi_id=prodi_id)
+    # tampilkan jika mahasiswa dipilih
     if mahasiswa_id:
-        nilai_list = nilai_list.filter(mahasiswa_id=mahasiswa_id)
+        nilai_list = (
+            Nilai.objects.select_related('mahasiswa', 'matakuliah', 'mahasiswa__prodi')
+            .filter(mahasiswa_id=mahasiswa_id)
+            .annotate(
+                # ambil panjang kode MK
+                kode_len=Length('matakuliah__kodemk'),
+                # ambil bagian angka setelah 2 huruf pertama (misal BD001 -> 001)
+                kode_mk_num=Cast(Substr('matakuliah__kodemk', 3, Length('matakuliah__kodemk') - 2), IntegerField())
+            )
+            .order_by('mahasiswa__nama', 'kode_mk_num')
+        )
 
     context = {
         'prodi_list': prodi_list,
@@ -451,7 +465,6 @@ def input_nilai(request):
             prodi_id=selected_prodi, angkatan=selected_angkatan
         )
 
-    # Jika mahasiswa dipilih, ambil nilai-nilai yang sudah ada
     if selected_mahasiswa and matakuliah_list:
         nilai_qs = Nilai.objects.filter(mahasiswa_id=selected_mahasiswa)
         nilai_exist = {n.matakuliah_id: n.nilai_huruf for n in nilai_qs}
@@ -471,7 +484,10 @@ def input_nilai(request):
             )
 
         messages.success(request, 'Nilai berhasil disimpan atau diperbarui.')
-        return redirect(f'?prodi={selected_prodi}&mahasiswa={mahasiswa_id}&angkatan={selected_angkatan}')
+
+        # 🔧 Redirect yang benar:
+        url = reverse('input_nilai')
+        return redirect(f'{url}?prodi={selected_prodi}&mahasiswa={mahasiswa_id}&angkatan={selected_angkatan}')
 
     context = {
         'prodi_list': prodi_list,

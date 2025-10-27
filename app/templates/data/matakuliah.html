@@ -49,50 +49,40 @@
         <form method="POST" action="{% url 'matakuliah_add' %}">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="fakultas">Program</label>
-            <select name="fakultas" id="fakultas" class="form-control" required>
-              <option value="">-- Pilih Fakultas --</option>
-              {% for f in fakultas_list %}
-                <option value="{{ f.id }}">{{ f.namafakultas }}</option>
-              {% empty %}
-                <option disabled>Belum ada fakultas</option>
-              {% endfor %}
-            </select>
-          </div>
-
-            <div class="mb-2">
-              <label for="kode_prodi" class="form-label small"><strong>Kode Program Studi</strong></label>
-              <input type="text" class="form-control" id="kode_prodi" name="kode_prodi" required placeholder="Kode Prodi" />
+              <label for="prodi">Program Studi</label>
+              <select name="prodi" id="prodi" class="form-control" required>
+                <option value="">-- Pilih Program Studi --</option>
+                {% for p in prodi_list %}
+                  <option value="{{ p.id }}">{{ p.namaprodi }} ({{ p.fakultas.namafakultas }})</option>
+                {% empty %}
+                  <option disabled>Belum ada program studi</option>
+                {% endfor %}
+              </select>
             </div>
 
             <div class="mb-2">
-              <label for="namaprodi" class="form-label small"><strong>Nama Program Studi</strong></label>
-              <input type="text" class="form-control" id="namaprodi" name="namaprodi" required placeholder="Nama Program Studi" />
+              <label for="kodemk" class="form-label small"><strong>Kode Mata Kuliah</strong></label>
+              <input type="text" class="form-control" id="kodemk" name="kodemk" required placeholder="Kode Mata Kuliah" />
+            </div>
+
+            <div class="mb-2">
+              <label for="namamk" class="form-label small"><strong>Nama Mata Kuliah</strong></label>
+              <input type="text" class="form-control" id="namamk" name="namamk" required placeholder="Nama Mata Kuliah" />
             </div>
             
             <div class="mb-2">
-              <label for="namaprodi_en" class="form-label small"><strong>Nama Program Studi En</strong></label>
-              <input type="text" class="form-control" id="namaprodi_en" name="namaprodi_en" required placeholder="Nama Program Studi" />
+              <label for="course" class="form-label small"><strong>Nama Mata Kuliah En</strong></label>
+              <input type="text" class="form-control" id="course" name="course" required placeholder="Nama Mata Kuliah En" />
             </div>
 
             <div class="mb-2">
-              <label for="akreditasi" class="form-label small"><strong>Akreditasi</strong></label>
-              <input type="text" class="form-control" id="akreditasi" name="akreditasi" required placeholder="Akreditasi" />
+              <label for="angkatan" class="form-label small"><strong>Kurikulum</strong></label>
+              <input type="number" class="form-control" id="angkatan" name="angkatan" required placeholder="20 atau 21" />
             </div>
 
             <div class="mb-2">
-              <label for="noakreditasi" class="form-label small"><strong>No akreditasi</strong></label>
-              <input type="text" class="form-control" id="noakreditasi" name="noakreditasi" required placeholder="No Akreditasi" />
-            </div>
-
-            <div class="mb-2">
-              <label for="gelar" class="form-label small"><strong>Gelar</strong></label>
-              <input type="text" class="form-control" id="gelar" name="gelar" required placeholder="S.Tr.Bns" />
-            </div>
-
-            <div class="mb-2">
-              <label for="pisn" class="form-label small"><strong>PISN</strong></label>
-              <input type="text" class="form-control" id="pisn" name="pisn" required placeholder="Penomoran Ijazah" />
+              <label for="sks" class="form-label small"><strong>SKS</strong></label>
+              <input type="number" class="form-control" id="sks" name="sks" required placeholder="1 atau 2 atau 3" />
             </div>
           </div>
 
@@ -121,7 +111,7 @@
             type="button"
             class="btn btn-primary btn-sm"
             data-toggle="modal"
-            data-target="#tambahProdiModal"
+            data-target="#tambahMatakuliahModal"
           >
             + Tambah Data
           </button>
@@ -135,9 +125,9 @@
                   <th>Kode Mata Kuliah</th>
                   <th>Nama Mata Kuliah</th>
                   <th>Course</th>
+                  <th>SKS</th>
                   <th>Angkatan</th>
                   <th>Kode Program Studi</th>
-                  <th>SKS</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -148,8 +138,8 @@
                   <td>{{ m.kodemk }}</td>
                   <td>{{ m.namamk }}</td>
                   <td>{{ m.course }}</td>
-                  <td>{{ m.angkatan }}</td>
                   <td>{{ m.sks }}</td>
+                  <td>{{ m.angkatan }}</td>
                   <td>{{ m.prodi.namaprodi }}</td>
                   <td>
                     <!--Modal Update Data-->
@@ -217,7 +207,7 @@
                                   id="kodemk"
                                   name="kodemk"
                                   value="{{ m.kodemk }}"
-                                  required
+                                  disabled
                                 />
                               </div>
                               <div class="mb-2">
