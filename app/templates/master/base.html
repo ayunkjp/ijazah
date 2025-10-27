@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+  {% include 'master/header.html' %}
+  <body>
+    <div class="container-scroller">
+      <!-- partial:partials/_navbar.html -->
+      {% include 'master/navbar.html' %}
+      <!-- partial -->
+      <div class="container-fluid page-body-wrapper">
+        <!-- partial:partials/_settings-panel.html -->
+        {% include 'master/setting.html' %}
+        <!-- partial -->
+        <!-- partial:partials/_sidebar.html -->
+        {% include 'master/sidebar.html' %}
+        <div class="main-panel">
+          {% block content %} {% endblock content %}
+          <!-- content-wrapper ends -->
+          {% include 'master/js.html' %}
+        </div>
+        <!-- main-panel ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    {% block add_js %} {% endblock add_js %}
+  </body>
+</html>

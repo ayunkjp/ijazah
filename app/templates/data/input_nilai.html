@@ -1,0 +1,75 @@
+{% extends 'master/base.html' %}
+{% block content %}
+{% load custom_tags %}
+<div class="container-fluid">
+  <h4 class="mb-3">Input Nilai Mahasiswa</h4>
+
+  <form method="get" class="row mb-4">
+    <div class="col-md-3">
+      <label>Program Studi</label>
+      <select name="prodi" class="form-control" onchange="this.form.submit()">
+        <option value="">-- Pilih Prodi --</option>
+        {% for p in prodi_list %}
+        <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:'s' %}selected{% endif %}>{{ p.namaprodi }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if mahasiswa_list %}
+    <div class="col-md-3">
+      <label>Mahasiswa</label>
+      <select name="mahasiswa" class="form-control" onchange="this.form.submit()">
+        <option value="">-- Pilih Mahasiswa --</option>
+        {% for m in mahasiswa_list %}
+        <option value="{{ m.id }}" {% if selected_mahasiswa == m.id|stringformat:'s' %}selected{% endif %}>{{ m.nama }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    {% if selected_prodi %}
+    <div class="col-md-3">
+      <label>Angkatan Soal</label>
+      <input type="text" name="angkatan" class="form-control" value="{{ selected_angkatan }}" placeholder="Contoh: 2021" onchange="this.form.submit()">
+    </div>
+    {% endif %}
+  </form>
+
+  {% if matakuliah_list and selected_mahasiswa %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="mahasiswa" value="{{ selected_mahasiswa }}">
+    <table class="table table-bordered table-sm">
+      <thead class="thead-light">
+        <tr>
+          <th width="15%">Kode MK</th>
+          <th>Nama Mata Kuliah</th>
+          <th width="8%">SKS</th>
+          <th width="15%">Nilai Huruf</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mk in matakuliah_list %}
+          {% with nilai_skrg=nilai_exist|get_item:mk.id %}
+          <tr>
+            <td>{{ mk.kodemk }}</td>
+            <td>{{ mk.namamk }}</td>
+            <td>{{ mk.sks }}</td>
+            <td>
+              <input 
+                type="text" 
+                name="nilai_{{ mk.id }}" 
+                value="{{ nilai_skrg }}" 
+                class="form-control form-control-sm"
+              >
+            </td>
+          </tr>
+          {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary btn-sm">Simpan Semua</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

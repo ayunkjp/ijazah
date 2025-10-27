@@ -1,0 +1,61 @@
+{% extends 'master/base.html' %}
+{% block content %}
+<div class="container-fluid">
+  <h4 class="mb-3">Daftar Nilai Mahasiswa</h4>
+
+  <form method="get" class="mb-3 d-flex gap-2">
+  <select name="prodi" id="prodi" class="form-select" onchange="this.form.submit()">
+    <option value="">-- Pilih Program Studi --</option>
+    {% for p in prodi_list %}
+      <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>
+        {{ p.namaprodi }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <select name="mahasiswa" id="mahasiswa" class="form-select" onchange="this.form.submit()">
+    <option value="">-- Semua Mahasiswa --</option>
+    {% for mhs in mahasiswa_list %}
+      <option value="{{ mhs.id }}" {% if mhs.id|stringformat:'s' == selected_mahasiswa %}selected{% endif %}>
+        {{ mhs.nama }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+<p><strong>IPK:</strong> {{ nilai_list.first.mahasiswa.hitung_ipk }}</p>
+<td>{{ n.mahasiswa.hitung_ipk }}</td>
+
+  <table class="table table-bordered table-sm">
+  <thead class="table-light">
+    <tr>
+      <th>No</th>
+      <th>NIM</th>
+      <th>Nama Mahasiswa</th>
+      <th>Kode MK</th>
+      <th>Nama Mata Kuliah</th>
+      <th>SKS</th>
+      <th>Nilai Huruf</th>
+      <th>Nilai Angka</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for n in nilai_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ n.mahasiswa.nim }}</td>
+        <td>{{ n.mahasiswa.nama }}</td>
+        <td>{{ n.matakuliah.kodemk }}</td>
+        <td>{{ n.matakuliah.namamk }}</td>
+        <td>{{ n.matakuliah.sks }}</td>
+        <td>{{ n.nilai_huruf }}</td>
+        <td>{{ n.nilai_angka }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="8" class="text-center text-muted">Tidak ada data nilai.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

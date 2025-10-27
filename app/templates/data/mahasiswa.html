@@ -1,0 +1,462 @@
+{% extends 'master/base.html' %} {% block content %}
+<div class="container-fluid">
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Data Program Studi</li>
+  </ol>
+
+  <!--Pop Up Message-->
+  {% for message in messages %} {% if message %}
+  <div class="alert alert-success">{{ message }}</div>
+  {% endif %} {% endfor %}
+
+  <!-- Modal Form Input -->
+  <div
+  class="modal fade"
+  id="tambahMahasiswaModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="tambahMahasiswaModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tambahMahasiswaModalLabel">
+          <strong>Tambah Data Mahasiswa</strong>
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+       {% comment %} <!-- Garis Pembatas -->
+        <hr
+          class="hr-text mx-auto mt-4"
+          data-content="Data Fakultas"
+          style="width: 95%"
+        />
+        <!-- Garis Pembatas --> {% endcomment %}
+
+      <div class="modal-body">
+        <form method="POST" action="{% url 'mahasiswa_add' %}">
+          {% csrf_token %}
+            <div class="mb-3">
+              <label for="prodi">Program Studi</label>
+              <select name="prodi" id="prodi" class="form-control" required>
+                <option value="">-- Pilih Program Studi --</option>
+                {% for p in prodi_list %}
+                  <option value="{{ p.id }}">{{ p.namaprodi }} ({{ p.fakultas.namafakultas }})</option>
+                {% empty %}
+                  <option disabled>Belum ada program studi</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label for="nim" class="form-label small"><strong>Nomor Induk Mahasiswa</strong></label>
+              <input type="text" class="form-control" id="nim" name="nim" required placeholder="20123456" />
+            </div>
+            <div class="mb-2">
+              <label for="nama" class="form-label small"><strong>Nama Mahasiswa</strong></label>
+              <input type="text" class="form-control" id="nama" name="nama" required placeholder="Nama Lengkap" />
+            </div>
+            <div class="mb-2">
+              <label for="nik" class="form-label small"><strong>Nomor Induk Kependudukan</strong></label>
+              <input type="text" class="form-control" id="nik" name="nik" required placeholder="3270" />
+            </div>
+            <div class="mb-2">
+              <label for="tempatlahir" class="form-label small"><strong>Tempat Lahir</strong></label>
+              <input type="text" class="form-control" id="tempatlahir" name="tempatlahir" required placeholder="Tasikmalaya" />
+            </div>
+            <div class="mb-2">
+              <label for="tgllahir" class="form-label small"><strong>Tanggal Lahir</strong></label>
+              <input type="date" class="form-control" id="tgllahir" name="tgllahir" required />
+            </div>
+            <div class="mb-2">
+              <label for="jeniskelamin" class="form-label small"><strong>Jenis Kelamin</strong></label>
+              <select class="form-control" id="jeniskelamin" name="jeniskelamin" required>
+                <option value="">-- Pilih Jenis Kelamin --</option>
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label for="tglyudisium" class="form-label small"><strong>Tanggal Yudisium</strong></label>
+              <input type="date" class="form-control" id="tglyudisium" name="tglyudisium" required  />
+            </div>
+            <div class="mb-2">
+              <label for="tglyudisium_en" class="form-label small"><strong>Tanggal Yudisium En</strong></label>
+              <input type="date" class="form-control" id="tglyudisium_en" name="tglyudisium_en" required  />
+            </div>
+            <div class="mb-2">
+              <label for="tglwisuda" class="form-label small"><strong>Tanggal Wisuda</strong></label>
+              <input type="date" class="form-control" id="tglwisuda" name="tglwisuda" required  />
+            </div>
+            <div class="mb-2">
+              <label for="tglwisuda_en" class="form-label small"><strong>Tanggal Wisuda En</strong></label>
+              <input type="date" class="form-control" id="tglwisuda_en" name="tglwisuda_en" required  />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Menampilkan Data -->
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Data Mahasiswa</h4>
+        </div>
+        <div class="card-body">
+          <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">
+            <-- Kembali
+          </a>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            data-toggle="modal"
+            data-target="#tambahMahasiswaModal"
+          >
+            + Tambah Data
+          </button>
+          <hr />
+          <div class="table-responsive">
+            {% if mahasiswa %}
+            <table id="mahasiswa" class="table table-striped">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nomor Induk Mahasiswa</th>
+                  <th>Nama</th>
+                  <th>NIK</th>
+                  <th>Tampar Lahir</th>
+                  <th>Tanggal Lahir</th>
+                  <th>Jenis Kelamin</th>
+                  <th>Tanggal Yudisium</th>
+                  <th>Tanggal Yudisium En</th>
+                  <th>Tanggal Wisuda</th>
+                  <th>Tanggal Wisuda En</th>
+                  <th>Program Studi</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in mahasiswa %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ m.nim }}</td>
+                  <td>{{ m.nama }}</td>
+                  <td>{{ m.nik }}</td>
+                  <td>{{ m.tempatlahir }}</td>
+                  <td>{{ m.tgllahir }}</td>
+                  <td>{{ m.jeniskelamin }}</td>
+                  <td>{{ m.tglyudisium }}</td>
+                  <td>{{ m.tglyudisium_en }}</td>
+                  <td>{{ m.tglwisuda }}</td>
+                  <td>{{ m.tglwisuda_en }}</td>
+                  <td>{{ m.prodi.namaprodi }}</td>
+                  <td>
+                    <!--Modal Update Data-->
+                    <button
+                      type="button"
+                      class="btn btn-warning btn-sm"
+                      data-toggle="modal"
+                      data-target="#editModal{{ m.id }}"
+                    >
+                      Edit
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="editModal{{ m.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="editModal{{ m.id }}Label"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="editModal{{ m.id }}Label"
+                            >
+                              Update Data Mahasiswa
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <form
+                              id="editForm{{ m.id }}"
+                              method="POST"
+                              action="{% url 'update_mahasiswa' m.id %}"
+                            >
+                              {% csrf_token %}
+                              <div class="mb-2">
+                                <label for="nim" class="form-label"
+                                  >Nomor Induk Mahasiswa</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="nim"
+                                  name="nim"
+                                  value="{{ m.nim }}"
+                                  disabled
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="nama" class="form-label"
+                                  >Nama Mahasiswa</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="nama"
+                                  name="nama"
+                                  value="{{ m.nama }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="nik" class="form-label"
+                                  >Nomor Induk Kependudukan</label
+                                >
+                                <input
+                                  type="number"
+                                  class="form-control"
+                                  id="nik"
+                                  name="nik"
+                                  value="{{ m.nik }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="tempatlahir" class="form-label"
+                                  >Tempat Lahir</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="tempatlahir"
+                                  name="tempatlahir"
+                                  value="{{ m.tempatlahir }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="tgllahir" class="form-label">Tanggal Lahir</label>
+                                <input
+                                  type="date"
+                                  class="form-control"
+                                  id="tgllahir"
+                                  name="tgllahir"
+                                  value="{{ m.tgllahir|date:'Y-m-d' }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="jeniskelamin" class="form-label">Jenis Kelamin</label>
+                                <select class="form-control" id="jeniskelamin" name="jeniskelamin" required>
+                                  <option value="">-- Pilih Jenis Kelamin --</option>
+                                  <option value="L" {% if m.jeniskelamin == "L" %}selected{% endif %}>Laki-Laki</option>
+                                  <option value="P" {% if m.jeniskelamin == "P" %}selected{% endif %}>Perempuan</option>
+                                </select>
+                              </div>
+                              <div class="mb-2">
+                                <label for="tglyudisium" class="form-label"
+                                  >Tanggal Yudisium</label
+                                >
+                                <input
+                                  type="date"
+                                  class="form-control"
+                                  id="tglyudisium"
+                                  name="tglyudisium"
+                                  value="{{ m.tglyudisium|date:'Y-m-d' }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="tglyudisium_en" class="form-label"
+                                  >Tanggal Yudisium En</label
+                                >
+                                <input
+                                  type="date"
+                                  class="form-control"
+                                  id="tglyudisium_en"
+                                  name="tglyudisium_en"
+                                  value="{{ m.tglyudisium_en|date:'Y-m-d' }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="tglwisuda" class="form-label"
+                                  >Tanggal Wisuda</label
+                                >
+                                <input
+                                  type="date"
+                                  class="form-control"
+                                  id="tglwisuda"
+                                  name="tglwisuda"
+                                  value="{{ m.tglwisuda|date:'Y-m-d' }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="tglwisuda_en" class="form-label"
+                                  >Tanggal Wisuda En</label
+                                >
+                                <input
+                                  type="date"
+                                  class="form-control"
+                                  id="tglwisuda_en"
+                                  name="tglwisuda_en"
+                                  value="{{ m.tglwisuda_en|date:'Y-m-d' }}"
+                                  required
+                                />
+                              </div>
+                              
+                              <hr>
+                              <button
+                                type="submit"
+                                class="btn btn-primary btn-sm"
+                              >
+                                Simpan
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!--Delete Data-->
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      data-toggle="modal"
+                      data-target="#deleteModal{{ m.id }}"
+                    >
+                      Delete
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="deleteModal{{ m.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="deleteModalLabel{{ m.id }}"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="deleteModalLabel{{ m.id }}"
+                            >
+                              Delete Data Mahasiswa
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            Apakah Anda yakin ingin menghapus data Mahasiswa
+                            {{m.nama}}?
+                          </div>
+                          <div class="modal-footer">
+                            <form
+                              action="{% url 'delete_mahasiswa' m.id %}"
+                              method="post"
+                            >
+                              {% csrf_token %}
+                              <button
+                                type="submit"
+                                class="btn btn-danger btn-sm"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %} {% block add_js %}
+<!-- Alert Timer -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Select pesan yang baru saja ditampilkan
+    var successMessage = document.querySelector(".alert-success");
+
+    // Jika pesan ditemukan, sembunyikan pesan setelah 5 detik
+    if (successMessage) {
+      setTimeout(function () {
+        successMessage.style.display = "none";
+      }, 5000); // Waktu dalam milidetik (5 detik)
+    }
+  });
+</script>
+<!-- Alert Timer -->
+
+<!-- Format Data Tabel -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    new DataTable("#mahasiswa", {
+      responsive: true,
+      scrollCollapse: true,
+      paging: false,
+      scrollY: "500px",
+      searching: false,
+    });
+  });
+</script>
+<!-- Format Data Tabel -->
+{% endblock add_js %}

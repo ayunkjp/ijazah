@@ -1,0 +1,77 @@
+{% load static %}
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <!-- Menu Umum -->
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'home' %}">
+        <i class="mdi mdi-grid-large menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
+    <!---->
+    {# ================= ADMIN MENU ================= #}
+    <!---->
+    <li class="nav-item nav-category">Master Data</li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#admin-master">
+        <i class="menu-icon mdi mdi-floor-plan"></i>
+        <span class="menu-title">Data</span><i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="admin-master">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'fakultas_list' %}">Data Fakultas</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'prodi_list' %}">Data Program Studi</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mahasiswa_list' %}">Data Mahasiswa</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'matakuliah_list' %}">Data Mata Kuliah</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'nilai_list' %}">Data Nilai</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'input_nilai' %}">Input Nilai</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="nav-item nav-category">Generate</li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#nilai">
+        <i class="menu-icon mdi mdi-floor-plan"></i>
+        <span class="menu-title">Ijazah dan Transkip</span><i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="nilai">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mahasiswa_nilai' %}">Generate Ijazah</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Menu Setting -->
+    <li class="nav-item nav-category">Setting</li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#auth">
+        <i class="menu-icon mdi mdi-account-circle-outline"></i>
+        <span class="menu-title">Akun</span><i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="auth">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link text-danger" href="{% url 'logout' %}"
+              >Sign Out</a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</nav>

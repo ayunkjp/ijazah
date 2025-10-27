@@ -1,0 +1,19 @@
+/* In your CSS file */
+.form-input {
+  margin-bottom: 15px;
+}
+
+.form-input label {
+  display: block;
+}
+
+.form-input select,
+.form-input input[type="text"],
+.form-input input[type="email"],
+.form-input textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}

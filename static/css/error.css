@@ -1,0 +1,23 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 50px;
+}
+
+h1 {
+  font-size: 3em;
+  color: #333;
+}
+
+p {
+  font-size: 1.5em;
+  color: #666;
+}
+
+a {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 1.2em;
+  text-decoration: none;
+  color: #007bff;
+}

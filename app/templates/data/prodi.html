@@ -1,0 +1,429 @@
+{% extends 'master/base.html' %} {% block content %}
+<div class="container-fluid">
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Data Program Studi</li>
+  </ol>
+
+  <!--Pop Up Message-->
+  {% for message in messages %} {% if message %}
+  <div class="alert alert-success">{{ message }}</div>
+  {% endif %} {% endfor %}
+
+  <!-- Modal Form Input -->
+  <div
+  class="modal fade"
+  id="tambahProdiModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="tambahProdiModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tambahProdiModalLabel">
+          <strong>Tambah Data Program Studi</strong>
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+       {% comment %} <!-- Garis Pembatas -->
+        <hr
+          class="hr-text mx-auto mt-4"
+          data-content="Data Fakultas"
+          style="width: 95%"
+        />
+        <!-- Garis Pembatas --> {% endcomment %}
+
+      <div class="modal-body">
+        <form method="POST" action="{% url 'prodi_add' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="fakultas">Program</label>
+            <select name="fakultas" id="fakultas" class="form-control" required>
+              <option value="">-- Pilih Fakultas --</option>
+              {% for f in fakultas_list %}
+                <option value="{{ f.id }}">{{ f.namafakultas }}</option>
+              {% empty %}
+                <option disabled>Belum ada fakultas</option>
+              {% endfor %}
+            </select>
+          </div>
+
+            <div class="mb-2">
+              <label for="kode_prodi" class="form-label small"><strong>Kode Program Studi</strong></label>
+              <input type="text" class="form-control" id="kode_prodi" name="kode_prodi" required placeholder="Kode Prodi" />
+            </div>
+
+            <div class="mb-2">
+              <label for="namaprodi" class="form-label small"><strong>Nama Program Studi</strong></label>
+              <input type="text" class="form-control" id="namaprodi" name="namaprodi" required placeholder="Nama Program Studi" />
+            </div>
+            
+            <div class="mb-2">
+              <label for="namaprodi_en" class="form-label small"><strong>Nama Program Studi En</strong></label>
+              <input type="text" class="form-control" id="namaprodi_en" name="namaprodi_en" required placeholder="Nama Program Studi" />
+            </div>
+
+            <div class="mb-2">
+              <label for="akreditasi" class="form-label small"><strong>Akreditasi</strong></label>
+              <input type="text" class="form-control" id="akreditasi" name="akreditasi" required placeholder="Akreditasi" />
+            </div>
+
+            <div class="mb-2">
+              <label for="noakreditasi" class="form-label small"><strong>No akreditasi</strong></label>
+              <input type="text" class="form-control" id="noakreditasi" name="noakreditasi" required placeholder="No Akreditasi" />
+            </div>
+
+            <div class="mb-2">
+              <label for="gelar" class="form-label small"><strong>Gelar</strong></label>
+              <input type="text" class="form-control" id="gelar" name="gelar" required placeholder="S.Tr.Bns" />
+            </div>
+
+            <div class="mb-2">
+              <label for="pisn" class="form-label small"><strong>PISN</strong></label>
+              <input type="text" class="form-control" id="pisn" name="pisn" required placeholder="Penomoran Ijazah" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Menampilkan Data -->
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Data Program Studi</h4>
+        </div>
+        <div class="card-body">
+          <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">
+            <-- Kembali
+          </a>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            data-toggle="modal"
+            data-target="#tambahProdiModal"
+          >
+            + Tambah Data
+          </button>
+          <hr />
+          <div class="table-responsive">
+            {% if prodi %}
+            <table id="prodi" class="table table-striped">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode Program Studi</th>
+                  <th>Nama Program Studi</th>
+                  <th>Nama Program Studi En</th>
+                  <th>Akreditas</th>
+                  <th>No Akreditasi</th>
+                  <th>Gekar</th>
+                  <th>PISN</th>
+                  <th>Program</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in prodi %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ p.kode_prodi }}</td>
+                  <td>{{ p.namaprodi }}</td>
+                  <td>{{ p.namaprodi_en }}</td>
+                  <td>{{ p.akreditasi }}</td>
+                  <td>{{ p.noakreditasi }}</td>
+                  <td>{{ p.gelar }}</td>
+                  <td>{{ p.pisn }}</td>
+                  <td>{{ p.fakultas.namafakultas }}</td>
+                  <td>
+                    <!--Modal Update Data-->
+                    <button
+                      type="button"
+                      class="btn btn-warning btn-sm"
+                      data-toggle="modal"
+                      data-target="#editModal{{ p.id }}"
+                    >
+                      Edit
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="editModal{{ p.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="editModal{{ p.id }}Label"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="editModal{{ p.id }}Label"
+                            >
+                              Update Data Program Studi
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <form
+                              id="editForm{{ p.id }}"
+                              method="POST"
+                              action="{% url 'update_prodi' p.id %}"
+                            >
+                              {% csrf_token %}
+                              <div class="mb-2">
+                                <label for="fakultas" class="form-label"
+                                  >Fakultas</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="fakultas"
+                                  name="fakultas"
+                                  value="{{ p.fakultas }}"
+                                  disabled
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="kode_prodi" class="form-label"
+                                  >Kode Program Studi</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="kode_prodi"
+                                  name="kode_prodi"
+                                  value="{{ p.kode_prodi }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="namaprodi" class="form-label"
+                                  >Nama Program Studi</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="namaprodi"
+                                  name="namaprodi"
+                                  value="{{ p.namaprodi }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="namaprodi_en" class="form-label"
+                                  >Nama Program Studi En</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="namaprodi_en"
+                                  name="namaprodi_en"
+                                  value="{{ p.namaprodi_en }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="akreditasi" class="form-label"
+                                  >Akrerditasi</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="akreditasi"
+                                  name="akreditasi"
+                                  value="{{ p.akreditasi }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="noakreditasi" class="form-label"
+                                  >No Akreditasi</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="noakreditasi"
+                                  name="noakreditasi"
+                                  value="{{ p.noakreditasi }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="gelar" class="form-label"
+                                  >Nama Dekan</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="gelar"
+                                  name="gelar"
+                                  value="{{ p.gelar }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="pisn" class="form-label"
+                                  >PISN</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="pisn"
+                                  name="pisn"
+                                  value="{{ p.pisn }}"
+                                  required
+                                />
+                              </div>
+                              
+                              <hr>
+                              <button
+                                type="submit"
+                                class="btn btn-primary btn-sm"
+                              >
+                                Simpan
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!--Delete Data-->
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      data-toggle="modal"
+                      data-target="#deleteModal{{ p.id }}"
+                    >
+                      Delete
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="deleteModal{{ p.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="deleteModalLabel{{ p.id }}"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="deleteModalLabel{{ p.id }}"
+                            >
+                              Delete Data Program Studi
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            Apakah Anda yakin ingin menghapus data Program Studi
+                            {{p.namaprodi}}?
+                          </div>
+                          <div class="modal-footer">
+                            <form
+                              action="{% url 'delete_prodi' p.id %}"
+                              method="post"
+                            >
+                              {% csrf_token %}
+                              <button
+                                type="submit"
+                                class="btn btn-danger btn-sm"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %} {% block add_js %}
+<!-- Alert Timer -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Select pesan yang baru saja ditampilkan
+    var successMessage = document.querySelector(".alert-success");
+
+    // Jika pesan ditemukan, sembunyikan pesan setelah 5 detik
+    if (successMessage) {
+      setTimeout(function () {
+        successMessage.style.display = "none";
+      }, 5000); // Waktu dalam milidetik (5 detik)
+    }
+  });
+</script>
+<!-- Alert Timer -->
+
+<!-- Format Data Tabel -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    new DataTable("#prodi", {
+      responsive: true,
+      scrollCollapse: true,
+      paging: false,
+      scrollY: "500px",
+      searching: false,
+    });
+  });
+</script>
+<!-- Format Data Tabel -->
+{% endblock add_js %}

@@ -1,0 +1,55 @@
+{% extends 'master/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h4>{{ title }}</h4>
+
+  <form method="get" class="mb-3">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <select name="prodi_id" class="form-select" onchange="this.form.submit()">
+          <option value="">-- Pilih Program Studi --</option>
+          {% for p in prodi_list %}
+            <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:"s" %}selected{% endif %}>
+              {{ p.namaprodi }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </form>
+
+  {% if selected_prodi %}
+  {% if mahasiswa_list %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>NIM</th>
+          <th>Nama</th>
+          <th>Program Studi</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mahasiswa_list %}
+        <tr>
+          <td>{{ m.nim }}</td>
+          <td>{{ m.nama }}</td>
+          <td>{{ m.prodi.namaprodi }}</td>
+          <td>
+            <a href="{% url 'generate_ijazah' m.id %}" class="btn btn-sm btn-success">
+              <i class="bi bi-file-earmark-text"></i> Generate Ijazah
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-warning">Tidak ada mahasiswa dengan nilai di prodi ini.</div>
+  {% endif %}
+{% else %}
+  <p>Pilih program studi untuk menampilkan mahasiswa yang sudah memiliki nilai.</p>
+{% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends 'master/base.html' %} {% block content %}
+<div class="container-fluid">
+  <div class="card mt-4">
+      <div class="card-header bg-info text-white">Dashboard {{ request.user.get_role_display }}</div>
+
+      <!-- ALERT -->
+      {% for message in messages %}
+      <div class="alert alert-info">{{ message }}</div>
+      {% endfor %}
+
+      
+      <!-- ADMIN DASHBOARD -->
+      {% if request.user.role == 'admin' %}
+      <div class="row mt-3">
+        <!-- Cards Statistik -->
+        <div class="col-md-3 mb-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">Sekolah Terdaftar</div>
+            <h3 class="card-footer">{{ total_sekolah }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">Asesor Terdaftar</div>
+            <h3 class="card-footer">{{ total_asesor }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">Pendaftaran UKK</div>
+            <h3 class="card-footer">{{ total_pendaftaran }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card bg-danger text-white">
+            <div class="card-body">Peserta UKK</div>
+            <h3 class="card-footer">{{ total_peserta }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafik Progres Penilaian -->
+      <div class="card mt-4">
+        <div class="card-header bg-primary text-white">Progres Penilaian</div>
+        <div class="card-body">
+          <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabel Pendaftaran Terbaru -->
+      <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+          Pendaftaran UKK Terbaru
+        </div>
+        <div class="card-body">
+          <table id="pendaftaran" class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Sekolah</th>
+                <th>Jurusan</th>
+                <th>Asesor</th>
+                <th>Tanggal</th>
+                <th>Status Pendaftaran</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pendaftaran_terbaru %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.sekolah.namasekolah }}</td>
+                <td>{{ p.kompetensi_keahlian.nama_jurusan }}</td>
+                <td>{{ p.asesor.nama }}</td>
+                <td>{{ p.tanggal_pendaftaran }}</td>
+                <td>
+                  {% if p.status_verifikasi %}
+                    <span class="badge bg-success">Terverifikasi</span>
+                  {% else %}
+                    <span class="badge bg-danger">Belum Diverifikasi</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center">Tidak ada data</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ASESOR DASHBOARD -->
+      {% if request.user.role in 'asesor admin' and is_asesor %}
+      <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+          <div class="card bg-info text-white">
+            <div class="card-body">Pendaftaran Saya</div>
+            <h3 class="card-footer">{{ total_pendaftaran_saya }}</h3>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">Peserta Dibimbing</div>
+            <h3 class="card-footer">{{ total_peserta_saya }}</h3>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">Belum Dinilai</div>
+            <h3 class="card-footer">{{ peserta_belum_dinilai }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Pendaftaran -->
+      <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+          Status Penilaian
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Sekolah</th>
+                <th>Jurusan</th>
+                <th>Status Penilaian</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pendaftaran_saya %}
+              <tr>
+                <td>{{ p.sekolah.namasekolah }}</td>
+                <td>{{ p.kompetensi_keahlian.nama_jurusan }}</td>
+                <td>{{ p.status_penilaian }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">Tidak ada pendaftaran</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- OPERATOR DASHBOARD -->
+      {% if request.user.role == 'operator' %}
+      <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">Pendaftaran UKK Sekolah</div>
+            <h3 class="card-footer">{{ total_pendaftaran_sekolah }}</h3>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">Peserta UKK Sekolah</div>
+            <h3 class="card-footer">{{ total_peserta_sekolah }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Pendaftaran -->
+      <div class="card mt-4">
+        <div class="card-header bg-primary text-white">Status Pendaftaran</div>
+        <div class="card-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Jurusan</th>
+                <th>Status Verifikasi</th>
+                <th>Asesor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pendaftaran_sekolah %}
+              <tr>
+                <td>{{ p.kompetensi_keahlian.nama_jurusan }}</td>
+                <td>
+                  {% if p.status_verifikasi %}
+                    Terverifikasi
+                  {% else %}
+                    Belum Diverifikasi
+                  {% endif %}
+                </td>
+                <td>{{ p.asesor.nama }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">Tidak ada data</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+      
+    </div>
+  </div>
+</div>
+{% endblock %} {% block add_js %}
+
+<!-- Format Data Tabel -->
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        new DataTable("#peserta", {
+            responsive: true,
+            scrollCollapse: true,
+            paging: true,
+            scrollY: "500px",
+            searching:false,
+        });
+    });
+</script>
+<!-- Format Data Tabel -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  {% if request.user.role == 'admin' %}
+  var ctx = document.getElementById('progressChart').getContext('2d');
+  var chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Selesai', 'Progres', 'Belum Dinilai'],
+      datasets: [{
+        data: [{{ progres_selesai }}, {{ progres_berjalan }}, {{ progres_belum }}],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false // Boleh nonaktifkan rasio
+    }
+  });
+  {% endif %}
+</script>
+{% endblock add_js %}

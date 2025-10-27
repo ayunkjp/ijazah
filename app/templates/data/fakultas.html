@@ -1,0 +1,423 @@
+{% extends 'master/base.html' %} {% block content %}
+<div class="container-fluid">
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Data Fakultas</li>
+  </ol>
+
+  <!--Pop Up Message-->
+  {% for message in messages %} {% if message %}
+  <div class="alert alert-success">{{ message }}</div>
+  {% endif %} {% endfor %}
+
+  <!-- Modal Form Input -->
+  <div
+  class="modal fade"
+  id="tambahFakultasModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="tambahFakultasModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tambahFakultasModalLabel">
+          <strong>Tambah Data Fakultas</strong>
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+       {% comment %} <!-- Garis Pembatas -->
+        <hr
+          class="hr-text mx-auto mt-4"
+          data-content="Data Fakultas"
+          style="width: 95%"
+        />
+        <!-- Garis Pembatas --> {% endcomment %}
+
+      <div class="modal-body">
+        <form method="POST" action="{% url 'fakultas_add' %}">
+          {% csrf_token %}
+          <div class="row">
+            <div class="mb-2">
+              <label for="kodept" class="form-label small"><strong>Kode PT (Perguruan Tinggi)</strong></label>
+              <input type="text" class="form-control" id="kodept" name="kodept" required placeholder="Kode PT" />
+            </div>
+
+            <div class="mb-2">
+              <label for="kodefakultas" class="form-label small"><strong>Kode Fakultas</strong></label>
+              <input type="text" class="form-control" id="kodefakultas" name="kodefakultas" required placeholder="Kode Fakultas" />
+            </div>
+
+            <div class="mb-2">
+              <label for="namafakultas" class="form-label small"><strong>Nama Fakultas</strong></label>
+              <input type="text" class="form-control" id="namafakultas" name="namafakultas" required placeholder="Nama Fakultas" />
+            </div>
+
+            <div class="mb-2">
+              <label for="namafakultas_en" class="form-label small"><strong>Nama Fakultas En</strong></label>
+              <input type="text" class="form-control" id="namafakultas_en" name="namafakultas_en" required placeholder="Nama Fakultas En" />
+            </div>
+
+            <div class="mb-2">
+              <label for="dekan" class="form-label small"><strong>Dekan</strong></label>
+              <input type="text" class="form-control" id="dekan" name="dekan" required placeholder="Dekan" />
+            </div>
+
+            <div class="mb-2">
+              <label for="dekan_en" class="form-label small"><strong>Dekan En</strong></label>
+              <input type="text" class="form-control" id="dekan_en" name="dekan_en" required placeholder="Dekan En" />
+            </div>
+
+            <div class="mb-2">
+              <label for="namadekan" class="form-label small"><strong>Nama Dekan</strong></label>
+              <input type="text" class="form-control" id="namadekan" name="namadekan" required placeholder="Nama Dekan" />
+            </div>
+
+            <div class="mb-2">
+              <label for="nipt" class="form-label small"><strong>NIPT</strong></label>
+              <input type="text" class="form-control" id="nipt" name="nipt" required placeholder="NIPT" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Menampilkan Data -->
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Data Fakultas</h4>
+        </div>
+        <div class="card-body">
+          <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">
+            <-- Kembali
+          </a>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            data-toggle="modal"
+            data-target="#tambahFakultasModal"
+          >
+            + Tambah Data
+          </button>
+          <hr />
+          <div class="table-responsive">
+            {% if fakultas %}
+            <table id="fakultas" class="table table-striped">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode PT</th>
+                  <th>Kode Fakultas</th>
+                  <th>Nama Fakultas</th>
+                  <th>Nama Fakultas En</th>
+                  <th>Dekan</th>
+                  <th>Dekan En</th>
+                  <th>Nama Dekan</th>
+                  <th>NIPT</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in fakultas %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ f.kodept }}</td>
+                  <td>{{ f.kodefakultas }}</td>
+                  <td>{{ f.namafakultas }}</td>
+                  <td>{{ f.namafakultas_en }}</td>
+                  <td>{{ f.dekan }}</td>
+                  <td>{{ f.dekan_en }}</td>
+                  <td>{{ f.namadekan }}</td>
+                  <td>{{ f.nipt }}</td>
+                  <td>
+                    <!--Modal Update Data-->
+                    <button
+                      type="button"
+                      class="btn btn-warning btn-sm"
+                      data-toggle="modal"
+                      data-target="#editModal{{ f.id }}"
+                    >
+                      Edit
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="editModal{{ f.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="editModal{{ f.id }}Label"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="editModal{{ f.id }}Label"
+                            >
+                              Update Data Fakultas
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <form
+                              id="editForm{{ f.id }}"
+                              method="POST"
+                              action="{% url 'update_fakultas' f.id %}"
+                            >
+                              {% csrf_token %}
+                              <div class="mb-2">
+                                <label for="kodept" class="form-label"
+                                  >Kode PT</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="kodept"
+                                  name="kodept"
+                                  value="{{ f.kodept }}"
+                                  disabled
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="kodefakultas" class="form-label"
+                                  >Kode Fakultas</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="kodefakultas"
+                                  name="kodefakultas"
+                                  value="{{ f.kodefakultas }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="namafakultas" class="form-label"
+                                  >Nama Fakultas</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="namafakultas"
+                                  name="namafakultas"
+                                  value="{{ f.namafakultas }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="namafakultas_en" class="form-label"
+                                  >Nama Fakultas En</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="namafakultas_en"
+                                  name="namafakultas_en"
+                                  value="{{ f.namafakultas_en }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="dekan" class="form-label"
+                                  >Dekan</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="dekan"
+                                  name="dekan"
+                                  value="{{ f.dekan }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="dekan_en" class="form-label"
+                                  >Dekan En</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="dekan_en"
+                                  name="dekan_en"
+                                  value="{{ f.dekan_en }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="namadekan" class="form-label"
+                                  >Nama Dekan</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="namadekan"
+                                  name="namadekan"
+                                  value="{{ f.namadekan }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="nipt" class="form-label"
+                                  >NIPT</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="nipt"
+                                  name="nipt"
+                                  value="{{ f.nipt }}"
+                                  required
+                                />
+                              </div>
+                              
+                              <hr>
+                              <button
+                                type="submit"
+                                class="btn btn-primary btn-sm"
+                              >
+                                Simpan
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!--Delete Data-->
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      data-toggle="modal"
+                      data-target="#deleteModal{{ f.id }}"
+                    >
+                      Delete
+                    </button>
+                    <div
+                      class="modal fade"
+                      id="deleteModal{{ f.id }}"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-labelledby="deleteModalLabel{{ f.id }}"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5
+                              class="modal-title font-weight-bold"
+                              id="deleteModalLabel{{ f.id }}"
+                            >
+                              Delete Data Fakultas
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            Apakah Anda yakin ingin menghapus data Fakultas
+                            {{f.namafakultas}}?
+                          </div>
+                          <div class="modal-footer">
+                            <form
+                              action="{% url 'delete_fakultas' f.id %}"
+                              method="post"
+                            >
+                              {% csrf_token %}
+                              <button
+                                type="submit"
+                                class="btn btn-danger btn-sm"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %} {% block add_js %}
+<!-- Alert Timer -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Select pesan yang baru saja ditampilkan
+    var successMessage = document.querySelector(".alert-success");
+
+    // Jika pesan ditemukan, sembunyikan pesan setelah 5 detik
+    if (successMessage) {
+      setTimeout(function () {
+        successMessage.style.display = "none";
+      }, 5000); // Waktu dalam milidetik (5 detik)
+    }
+  });
+</script>
+<!-- Alert Timer -->
+
+<!-- Format Data Tabel -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    new DataTable("#fakultas", {
+      responsive: true,
+      scrollCollapse: true,
+      paging: false,
+      scrollY: "500px",
+      searching: false,
+    });
+  });
+</script>
+<!-- Format Data Tabel -->
+{% endblock add_js %}

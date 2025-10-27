@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: url("{% static 'UMBgd.jpg' %}") no-repeat center center fixed;
+      background-size: cover;
+    }
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="fade-in bg-white/20 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md text-white">
+    <h2 class="text-3xl font-bold mb-6 text-center">Selamat Datang</h2>
+    <form method="POST" action="{% url 'login' %}" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block mb-2 text-sm font-medium">Username</label>
+        <input type="text" name="username" placeholder="Masukkan username"
+          class="w-full px-4 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-medium">Password</label>
+        <input type="password" name="password" placeholder="Masukkan password"
+          class="w-full px-4 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+      </div>
+
+      <button type="submit"
+        class="w-full py-2 mt-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-transform transform hover:scale-105 shadow-lg">
+        Masuk
+      </button>
+
+      <div class="text-center mt-4">
+        <a href="#" class="text-sm text-gray-200 hover:text-white transition">Lupa password?</a>
+      </div>
+    </form>
+
+    <div class="mt-6 text-center text-sm text-gray-200">
+      Belum punya akun?
+      <a href="" class="text-white font-medium hover:underline">Daftar sekarang</a>
+    </div>
+  </div>
+</body>
+</html>
