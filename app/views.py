@@ -1085,29 +1085,32 @@ def generate_ijazah(request, mhs_id):
     font_path = os.path.join("static", "fonts")
     pdfmetrics.registerFont(TTFont("Times-Roman", os.path.join(font_path, "times.ttf")))
     pdfmetrics.registerFont(TTFont("Times-Bold", os.path.join(font_path, "timesbd.ttf")))
+    pdfmetrics.registerFont(TTFont("Times-Italic", os.path.join(font_path, "timesi.ttf")))
 
+    # ========== BUFFER & DOCUMENT ==========
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=landscape(A4),
-        rightMargin=0.5 * cm,
-        leftMargin=0.5 * cm,
-        topMargin=0.5 * cm,
-        bottomMargin=0.5 * cm,
+        rightMargin=0.3 * cm,
+        leftMargin=0.3 * cm,     # ← ubah dari 0 ke 0.3 cm
+        topMargin=0.3 * cm,
+        bottomMargin=0.3 * cm,
     )
 
     # ========== STYLES ==========
     styles = getSampleStyleSheet()
-    base_font = 10.5
-    base_leading = 13
+    base_font = 10
+    base_leading = 12
     styles.add(ParagraphStyle(name='LeftSmall', alignment=TA_LEFT, fontSize=base_font, leading=base_leading, fontName='Times-Roman'))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER, fontSize=base_font, leading=base_leading, fontName='Times-Roman'))
     styles.add(ParagraphStyle(name='BigTitle', alignment=TA_CENTER, fontSize=base_font+3, leading=base_leading+2, spaceAfter=15, fontName='Times-Bold'))
     styles.add(ParagraphStyle(name='Bold', alignment=TA_CENTER, fontSize=base_font, leading=base_leading, fontName='Times-Bold'))
+    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY, fontSize=10.5, leading=base_leading, fontName='Times-Roman'))
 
     elements = []
-    
-    # ========== HEADER (Nomor Ijazah) ==========
+
+    # ========== HEADER (Nomor Ijazah Nasional & SK Pendirian) ==========
     header_data = [
         [
             Paragraph("<b>Nomor Ijazah Nasional</b>", styles['LeftSmall']),
@@ -1127,73 +1130,114 @@ def generate_ijazah(request, mhs_id):
         ],
     ]
 
-    header_table = Table(header_data, colWidths=[8 * cm, 10 * cm])
+    header_table = Table(header_data, colWidths=[5* cm, 10 * cm])
     header_table.setStyle(TableStyle([
-        # Font & alignment
         ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('LEADING', (0, 0), (-1, -1), 12),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-
-        # Padding rapat (mepet kiri atas)
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-
-        # Merge kolom kanan untuk blok pertama (Nomor Ijazah)
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
         ('SPAN', (1, 0), (1, 1)),
-
-        # Merge kolom kanan untuk blok kedua (SK Pendirian)
         ('SPAN', (1, 2), (1, 3)),
-
-        # Garis pemisah antar blok
-        ('LINEBELOW', (0, 1), (-1, 1), 0.5, colors.black),
+        #('LINEBELOW', (0, 1), (-1, 1), 0.5, colors.black),
     ]))
-
-    # Letakkan mepet ke kiri atas halaman
+    header_table.hAlign = 'LEFT'     # pastikan tabel rata ke kiri margin
     elements.append(header_table)
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 80)) #spase after header
+
+
+    # Style khusus untuk nama mahasiswa
+    styles.add(ParagraphStyle(
+        name='NamaTitle',
+        alignment=TA_CENTER,
+        fontSize=16,
+        leading=18,
+        fontName='Times-Bold'
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='Konten1',
+        alignment=TA_CENTER,
+        fontSize=10.5,
+        leading=6,
+        fontName='Times'
+    ))
+
+    styles.add(ParagraphStyle(
+        name='Konten2',
+        alignment=TA_CENTER,
+        fontSize=10.5,
+        leading=12,
+        fontName='Times'
+    ))
+
+    styles.add(ParagraphStyle(
+        name='NIKTitle',
+        alignment=TA_CENTER,
+        fontSize=14,
+        leading=18,
+        fontName='Times-Bold'
+    ))
 
     # ========== IDENTITAS MAHASISWA ==========
-    elements.append(Paragraph("<b>Diberikan kepada</b> / is conferred upon", styles['Center']))
+    elements.append(Paragraph("<b>Diberikan kepada</b> / is conferred upon", styles['Konten1']))
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph(f"<b>{mhs.nama.upper()}</b>", styles['BigTitle']))
-    elements.append(Spacer(1, 6))
-    elements.append(Paragraph("Nomor Induk Mahasiswa / Student Identification Number", styles['Center']))
-    elements.append(Paragraph(f"{mhs.nim}", styles['Center']))
-    elements.append(Spacer(1, 4))
-    elements.append(Paragraph("Nomor Induk Kependudukan / National Identification Number", styles['Center']))
-    elements.append(Paragraph(f"{mhs.nik}", styles['Center']))
-    elements.append(Spacer(1, 4))
-    elements.append(Paragraph(f"lahir di / born in {mhs.tempatlahir}, {mhs.tgllahir.strftime('%d %B %Y')}", styles['Center']))
-    elements.append(Spacer(1, 15))
 
-   # ========== PROGRAM STUDI & FAKULTAS (CENTER + JUSTIFY) ==========
+    elements.append(Paragraph(f"<b>{mhs.nama.upper()}</b>", styles['NamaTitle']))  # font 16
+    elements.append(Spacer(1, 6))
+
+    elements.append(Paragraph("Nomor Induk Mahasiswa / Student Identification Number", styles['Konten2']))
+    elements.append(Paragraph(f"{mhs.nim}", styles['NIKTitle']))
+    elements.append(Spacer(1, 4))
+
+    elements.append(Paragraph("Nomor Induk Kependudukan / ID Number", styles['Konten2']))
+    elements.append(Paragraph(f"{mhs.nik}", styles['NIKTitle']))
+    elements.append(Spacer(1, 4))
+
+    bulan_indonesia = {
+        1: "Januari",
+        2: "Februari",
+        3: "Maret",
+        4: "April",
+        5: "Mei",
+        6: "Juni",
+        7: "Juli",
+        8: "Agustus",
+        9: "September",
+        10: "Oktober",
+        11: "November",
+        12: "Desember"
+    }
+
+    tgl = mhs.tgllahir
+    tanggal_lahir = f"{tgl.day} {bulan_indonesia[tgl.month]} {tgl.year}"
+
+    elements.append(Paragraph(f"lahir di / born in", styles['Konten2']))
+    elements.append(Paragraph(f"{mhs.tempatlahir}, {tanggal_lahir}", styles['NIKTitle']))
+
+    #elements.append(Paragraph(f"lahir di / born in", styles['Konten2'])) 
+    #elements.append(Paragraph(f"{mhs.tempatlahir},\n{mhs.tgllahir.strftime('%d %B %Y')}", styles['NIKTitle']))
+    elements.append(Spacer(1, 1))
+
+    # ========== PARAGRAF PROGRAM STUDI & FAKULTAS ==========
     tgl_yudisium = mhs.tglyudisium or datetime.now()
     tanggal_indo = tgl_yudisium.strftime('%d %B %Y')
     tanggal_en = tgl_yudisium.strftime('%B %d, %Y')
 
-    # Paragraf justify tapi ditaruh di tengah halaman
-    style_justify_center = ParagraphStyle(
-        'JustifyCenter',
-        fontName='Times-Roman',
-        fontSize=10,
-        leading=13,
-        alignment=TA_JUSTIFY,
-        spaceBefore=6,
-        spaceAfter=6,
-    )
+    # Hitung lebar area teks (A4 landscape)
+    halaman_lebar, _ = landscape(A4)
+    lebar_teks = halaman_lebar - (5 * cm * 2)  # margin kiri dan kanan 5 cm
 
-    # Konten dua bahasa
-    paragraf_id = (
+    # Paragraf dua bahasa
+    paragraf_dua_bahasa = (
         f"Telah menyelesaikan program <b>Sarjana Terapan</b> pada Program Studi "
         f"<b>{prodi.namaprodi}</b> ({prodi.kode_prodi}), Terakreditasi: <b>{prodi.akreditasi}</b> "
         f"(Nomor Akreditasi: {prodi.noakreditasi or '-'}), Fakultas <b>{fakultas.namafakultas}</b>, "
-        f"Universitas Mayasari Bakti, pada tanggal <b>{tanggal_indo}</b>."
-    )
-    paragraf_en = (
+        f"Universitas Mayasari Bakti, pada tanggal <b>{tanggal_indo}</b>. "
         f"Has completed the <b>Applied Bachelor Degree</b> program at "
         f"<b>{prodi.namaprodi_en or prodi.namaprodi}</b> ({prodi.kode_prodi}) Study Program, "
         f"Accredited: <b>{prodi.akreditasi}</b>, "
@@ -1201,31 +1245,19 @@ def generate_ijazah(request, mhs_id):
         f"Mayasari Bakti University, on <b>{tanggal_en}</b>."
     )
 
-    # Bungkus dalam Table agar paragraf tampil center secara horizontal
-    center_table = Table(
-        [[Paragraph(paragraf_id, style_justify_center)]],
-        colWidths=[22 * cm]  # lebar area teks agar tampak di tengah
+    # Masukkan ke tabel biar bisa diatur posisinya di tengah
+    paragraf_table = Table(
+        [[Paragraph(paragraf_dua_bahasa, styles['Justify'])]],
+        colWidths=[lebar_teks]
     )
-    center_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    paragraf_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),     # posisikan tabel di tengah
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 1),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 1),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
     ]))
-    elements.append(center_table)
-    elements.append(Spacer(1, 8))
 
-    center_table_en = Table(
-        [[Paragraph(paragraf_en, style_justify_center)]],
-        colWidths=[22 * cm]
-    )
-    center_table_en.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 1),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 1),
-    ]))
-    elements.append(center_table_en)
+    elements.append(paragraf_table)
     elements.append(Spacer(1, 15))
 
 
@@ -1240,9 +1272,6 @@ def generate_ijazah(request, mhs_id):
     elements.append(Spacer(1, 15))
 
     # ========== TANGGAL ==========
-    tgl_yudisium = mhs.tglyudisium or datetime.now()
-    tanggal_indo = tgl_yudisium.strftime('%d %B %Y')
-    tanggal_en = tgl_yudisium.strftime('%B %d, %Y')
     elements.append(Paragraph(f"Diterbitkan di Tasikmalaya, {tanggal_indo}.", styles['Center']))
     elements.append(Paragraph(f"Issued in Tasikmalaya on {tanggal_en}.", styles['Center']))
     elements.append(Spacer(1, 20))
@@ -1256,14 +1285,16 @@ def generate_ijazah(request, mhs_id):
         [f"{fakultas.namadekan}", "", "Dr. Yusuf Abdullah, S.E., M.M."],
         [f"NIPT : {fakultas.nipt or '-'}", "", "NIPT : 103.0925.01091969"],
     ]
-    table = Table(data, colWidths=[9 * cm, 1 * cm, 9 * cm])
-    table.setStyle(TableStyle([
+    ttd_table = Table(data, colWidths=[9 * cm, 1 * cm, 9 * cm])
+    ttd_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
         ('FONTSIZE', (0, 0), (-1, -1), base_font),
         ('LEADING', (0, 0), (-1, -1), base_leading),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    elements.append(table)
+    elements.append(ttd_table)
 
     # ========== BUILD PDF ==========
     doc.build(elements)
