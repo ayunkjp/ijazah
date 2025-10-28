@@ -23,9 +23,6 @@
             <a class="nav-link" href="{% url 'fakultas_list' %}">Data Fakultas</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'prodi_list' %}">Data Program Studi</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="{% url 'mahasiswa_list' %}">Data Mahasiswa</a>
           </li>
           <li class="nav-item">
@@ -33,6 +30,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'nilai_list' %}">Data Nilai</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'prodi_list' %}">Data Program Studi</a>
           </li>
         </ul>
       </div>
@@ -47,10 +47,10 @@
       <div class="collapse" id="nilai">
         <ul class="nav flex-column sub-menu">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'input_nilai' %}">Input Nilai</a>
+            <a class="nav-link" href="{% url 'mahasiswa_nilai' %}">Generate Ijazah</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'mahasiswa_nilai' %}">Generate Ijazah</a>
+            <a class="nav-link" href="{% url 'input_nilai' %}">Input Nilai</a>
           </li>
         </ul>
       </div>

@@ -15,6 +15,8 @@ class User(AbstractUser):
 # ==========================
 class Fakultas(models.Model):
     kodept = models.CharField(max_length=10)
+    pimpinanpt = models.CharField(max_length=100)
+    akrelembaga = models.CharField(max_length=100)
     kodefakultas = models.CharField(max_length=50, unique=True)
     namafakultas = models.CharField(max_length=150)
     namafakultas_en = models.CharField(max_length=150, blank=True, null=True)
@@ -92,6 +94,7 @@ class MataKuliah(models.Model):
     namamk = models.CharField(max_length=150)
     course = models.CharField(max_length=150)
     angkatan = models.CharField(max_length=10)
+    semester = models.CharField(max_length=10, default='')
     sks = models.PositiveIntegerField()
 
     class Meta:

@@ -4,7 +4,7 @@
   <h4 class="mb-3">Daftar Nilai Mahasiswa</h4>
 
   <form method="get" class="mb-3 d-flex gap-2">
-      <select name="prodi" id="prodi" class="form-select">
+    <select name="prodi" id="prodi" class="form-select">
       <option value="">-- Pilih Program Studi --</option>
       {% for p in prodi_list %}
         <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>

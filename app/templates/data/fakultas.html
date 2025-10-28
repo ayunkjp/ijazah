@@ -55,6 +55,16 @@
             </div>
 
             <div class="mb-2">
+              <label for="pimpinanpt" class="form-label small"><strong>Nama Lengkap</strong></label>
+              <input type="text" class="form-control" id="pimpinanpt" name="pimpinanpt" required placeholder="Nama Lengkap" />
+            </div>
+            
+            <div class="mb-2">
+              <label for="akrelembaga" class="form-label small"><strong>Akreditasi Lembaga</strong></label>
+              <input type="text" class="form-control" id="akrelembaga" name="akrelembaga" required placeholder="Akreditasi Lembaga" />
+            </div>
+
+            <div class="mb-2">
               <label for="kodefakultas" class="form-label small"><strong>Kode Fakultas</strong></label>
               <input type="text" class="form-control" id="kodefakultas" name="kodefakultas" required placeholder="Kode Fakultas" />
             </div>
@@ -127,6 +137,8 @@
                 <tr>
                   <th>No</th>
                   <th>Kode PT</th>
+                  <th>Pimpinan PT</th>
+                  <th>Akreditasi Lembaga</th>
                   <th>Kode Fakultas</th>
                   <th>Nama Fakultas</th>
                   <th>Nama Fakultas En</th>
@@ -142,6 +154,8 @@
                 <tr>
                   <td>{{ forloop.counter }}</td>
                   <td>{{ f.kodept }}</td>
+                  <td>{{ f.pimpinanpt }}</td>
+                  <td>{{ f.akrelembaga }}</td>
                   <td>{{ f.kodefakultas }}</td>
                   <td>{{ f.namafakultas }}</td>
                   <td>{{ f.namafakultas_en }}</td>
@@ -203,6 +217,32 @@
                                   name="kodept"
                                   value="{{ f.kodept }}"
                                   disabled
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="pimpinanpt" class="form-label"
+                                  >Pimpinan PT</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="pimpinanpt"
+                                  name="pimpinanpt"
+                                  value="{{ f.pimpinanpt }}"
+                                  required
+                                />
+                              </div>
+                              <div class="mb-2">
+                                <label for="akrelembaga" class="form-label"
+                                  >Akreditasi Lembaga</label
+                                >
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  id="akrelembaga"
+                                  name="akrelembaga"
+                                  value="{{ f.akrelembaga }}"
+                                  required
                                 />
                               </div>
                               <div class="mb-2">

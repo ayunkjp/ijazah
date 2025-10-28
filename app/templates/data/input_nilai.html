@@ -1,38 +1,63 @@
 {% extends 'master/base.html' %}
 {% block content %}
 {% load custom_tags %}
+
 <div class="container-fluid">
-  <h4 class="mb-3">Input Nilai Mahasiswa</h4>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Input Nilai</li>
+  </ol>
+
+  <!--Pop Up Message-->
+  {% for message in messages %} {% if message %}
+  <div class="alert alert-success">{{ message }}</div>
+  {% endif %} {% endfor %}
 
   <form method="get" class="row mb-4">
+    <!-- PILIH PRODI -->
     <div class="col-md-3">
       <label>Program Studi</label>
       <select name="prodi" class="form-control" onchange="this.form.submit()">
         <option value="">-- Pilih Prodi --</option>
         {% for p in prodi_list %}
-        <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:'s' %}selected{% endif %}>{{ p.namaprodi }}</option>
+        <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:'s' %}selected{% endif %}>
+          {{ p.namaprodi }}
+        </option>
         {% endfor %}
       </select>
     </div>
 
-    {% if mahasiswa_list %}
+    <!-- PILIH MAHASISWA (MUNCUL SETELAH PRODI DIPILIH) -->
+    {% if selected_prodi %}
     <div class="col-md-3">
       <label>Mahasiswa</label>
       <select name="mahasiswa" class="form-control" onchange="this.form.submit()">
         <option value="">-- Pilih Mahasiswa --</option>
         {% for m in mahasiswa_list %}
-        <option value="{{ m.id }}" {% if selected_mahasiswa == m.id|stringformat:'s' %}selected{% endif %}>{{ m.nama }}</option>
+        <option value="{{ m.id }}" {% if selected_mahasiswa == m.id|stringformat:'s' %}selected{% endif %}>
+          {{ m.nama }}
+        </option>
         {% endfor %}
       </select>
     </div>
     {% endif %}
 
-    {% if selected_prodi %}
-    <div class="col-md-3">
-      <label>Angkatan Soal</label>
-      <input type="text" name="angkatan" class="form-control" value="{{ selected_angkatan }}" placeholder="Contoh: 2021" onchange="this.form.submit()">
-    </div>
-    {% endif %}
+    <!-- PILIH ANGKATAN (MUNCUL SETELAH MAHASISWA DIPILIH) -->
+    {% if selected_mahasiswa %}
+<div class="col-md-3">
+  <label>Angkatan</label>
+  <select name="angkatan" class="form-select" onchange="this.form.submit()">
+    <option value="">-- Pilih Angkatan --</option>
+    {% for angkatan in angkatan_list %}
+      <option value="{{ angkatan }}" {% if angkatan|stringformat:'s' == selected_angkatan %}selected{% endif %}>
+        {{ angkatan }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+{% endif %}
   </form>
 
   {% if matakuliah_list and selected_mahasiswa %}
@@ -57,12 +82,14 @@
             <td>{{ mk.sks }}</td>
             <td>
               <input type="hidden" name="matakuliah_id" value="{{ mk.id }}">
-              <input 
-                type="text" 
-                name="nilai_huruf" 
-                value="{{ nilai_skrg }}" 
-                class="form-control form-control-sm"
-              >
+              <select name="nilai_huruf" class="form-select form-select-sm">
+                <option value="">-- Pilih Nilai --</option>
+                <option value="A" {% if nilai_skrg == "A" %}selected{% endif %}>A</option>
+                <option value="B" {% if nilai_skrg == "B" %}selected{% endif %}>B</option>
+                <option value="C" {% if nilai_skrg == "C" %}selected{% endif %}>C</option>
+                <option value="D" {% if nilai_skrg == "D" %}selected{% endif %}>D</option>
+                <option value="E" {% if nilai_skrg == "E" %}selected{% endif %}>E</option>
+              </select>
             </td>
           </tr>
           {% endwith %}
@@ -73,4 +100,49 @@
   </form>
   {% endif %}
 </div>
-{% endblock %}
+{% endblock content %}
+
+{% block add_js %}
+<!-- Alert Timer -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Select pesan yang baru saja ditampilkan
+    var successMessage = document.querySelector(".alert-success");
+
+    // Jika pesan ditemukan, sembunyikan pesan setelah 5 detik
+    if (successMessage) {
+      setTimeout(function () {
+        successMessage.style.display = "none";
+      }, 5000); // Waktu dalam milidetik (5 detik)
+    }
+  });
+</script>
+<!-- Alert Timer -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.querySelector("form");
+    const prodiSelect = form.querySelector("select[name='prodi']");
+    const mahasiswaSelect = form.querySelector("select[name='mahasiswa']");
+    const angkatanSelect = form.querySelector("select[name='angkatan']");
+
+    // Reset dropdown Mahasiswa dan Angkatan saat Prodi berubah
+    if (prodiSelect) {
+      prodiSelect.addEventListener("change", function() {
+        if (mahasiswaSelect) mahasiswaSelect.value = "";
+        if (angkatanSelect) angkatanSelect.value = "";
+        form.submit(); // submit ulang form
+      });
+    }
+
+    // Reset dropdown Angkatan saat Mahasiswa berubah
+    if (mahasiswaSelect) {
+      mahasiswaSelect.addEventListener("change", function() {
+        if (angkatanSelect) angkatanSelect.value = "";
+        form.submit(); // submit ulang form
+      });
+    }
+  });
+</script>
+
+{% endblock add_js %}

@@ -39,6 +39,9 @@
             <a href="{% url 'generate_ijazah' m.id %}" class="btn btn-sm btn-success">
               <i class="bi bi-file-earmark-text"></i> Generate Ijazah
             </a>
+            <a href="{% url 'generate_transkrip_html' m.id %}" class="btn btn-sm btn-info">
+              <i class="bi bi-file-earmark-text"></i> Generate Transkip
+            </a>
           </td>
         </tr>
         {% endfor %}

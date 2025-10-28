@@ -44,6 +44,7 @@
           style="width: 95%"
         />
         <!-- Garis Pembatas --> {% endcomment %}
+        
 
       <div class="modal-body">
         <form method="POST" action="{% url 'matakuliah_add' %}">
@@ -84,6 +85,11 @@
               <label for="sks" class="form-label small"><strong>SKS</strong></label>
               <input type="number" class="form-control" id="sks" name="sks" required placeholder="1 atau 2 atau 3" />
             </div>
+
+            <div class="mb-2">
+              <label for="semester" class="form-label small"><strong>Semester</strong></label>
+              <input type="number" class="form-control" id="semester" name="semester" required placeholder="1 atau 2 atau 3" />
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -104,6 +110,26 @@
           <h4 class="mb-0">Data Mata Kuliah</h4>
         </div>
         <div class="card-body">
+          <form method="get" class="mb-3">
+              <div class="col-md-4">
+                <label for="prodi" class="form-label">Pilih Program Studi</label>
+                <select name="prodi" id="prodi" class="form-select" onchange="this.form.submit()">
+                  <option value="">-- Semua Prodi --</option>
+                  {% for p in prodi_list %}
+                  <option value="{{ p.id }}" {% if p.id|stringformat:"s" == selected_prodi %}selected{% endif %}>
+                    {{ p.namaprodi }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+          </form>
+          <!-- Garis Pembatas -->
+        <hr
+          class="hr-text mx-auto mt-4"
+          data-content="Pilih Program Studi"
+          style="width: 95%"
+        />
+        <!-- Garis Pembatas -->
           <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">
             <-- Kembali
           </a>
@@ -126,6 +152,7 @@
                   <th>Nama Mata Kuliah</th>
                   <th>Course</th>
                   <th>SKS</th>
+                  <th>Semester</th>
                   <th>Angkatan</th>
                   <th>Kode Program Studi</th>
                   <th>Action</th>
@@ -139,6 +166,7 @@
                   <td>{{ m.namamk }}</td>
                   <td>{{ m.course }}</td>
                   <td>{{ m.sks }}</td>
+                  <td>{{ m.semester }}</td>
                   <td>{{ m.angkatan }}</td>
                   <td>{{ m.prodi.namaprodi }}</td>
                   <td>
@@ -212,7 +240,7 @@
                               </div>
                               <div class="mb-2">
                                 <label for="namamk" class="form-label"
-                                  >Nama Program Studi</label
+                                  >Nama Mata Kuliah</label
                                 >
                                 <input
                                   type="text"
@@ -225,7 +253,7 @@
                               </div>
                               <div class="mb-2">
                                 <label for="course" class="form-label"
-                                  >Nama Program Studi En</label
+                                  >Nama Mata Kuliah En</label
                                 >
                                 <input
                                   type="text"
@@ -238,7 +266,7 @@
                               </div>
                               <div class="mb-2">
                                 <label for="angkatan" class="form-label"
-                                  >Akrerditasi</label
+                                  >Kurikulum</label
                                 >
                                 <input
                                   type="text"
@@ -251,10 +279,10 @@
                               </div>
                               <div class="mb-2">
                                 <label for="sks" class="form-label"
-                                  >No Akreditasi</label
+                                  >SKS</label
                                 >
                                 <input
-                                  type="text"
+                                  type="number"
                                   class="form-control"
                                   id="sks"
                                   name="sks"
@@ -262,8 +290,19 @@
                                   required
                                 />
                               </div>
-                              
-                              
+                              <div class="mb-2">
+                                <label for="semester" class="form-label"
+                                  >Semester</label
+                                >
+                                <input
+                                  type="number"
+                                  class="form-control"
+                                  id="semester"
+                                  name="semester"
+                                  value="{{ m.semester }}"
+                                  required
+                                />
+                              </div>
                               <hr>
                               <button
                                 type="submit"
@@ -382,7 +421,7 @@
       scrollCollapse: true,
       paging: false,
       scrollY: "500px",
-      searching: false,
+      searching: true,
     });
   });
 </script>

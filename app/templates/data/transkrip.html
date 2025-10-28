@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Transkrip Nilai</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    margin: 20px;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.biodata table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin-bottom: 15px;
+}
+.biodata td {
+    padding: 2px 4px;
+}
+.transkrip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+}
+.transkrip-table td, .transkrip-table th {
+    border: 0.5px solid #666;
+    padding: 2px 4px;
+}
+.transkrip-table th {
+    background-color: #ddd;
+    text-align: center;
+}
+.inner-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+}
+.inner-table td, .inner-table th {
+    border: 0.5px solid #666;
+    padding: 2px 4px;
+}
+.inner-table th {
+    background-color: #eee;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h2>Transkrip Nilai Mahasiswa</h2>
+
+<div class="biodata">
+    <table>
+        <tr><td>Nama</td><td>{{ mhs.nama }}</td></tr>
+        <tr><td>NIK</td><td>{{ mhs.nik }}</td></tr>
+        <tr><td>Tempat, Tanggal Lahir</td><td>{{ mhs.tempatlahir }}, {{ mhs.tgllahir|date:"d-m-Y" }}</td></tr>
+        <tr><td>NIM</td><td>{{ mhs.nim }}</td></tr>
+        <tr><td>Fakultas</td><td>{{ mhs.prodi.fakultas.namafakultas }}</td></tr>
+        <tr><td>Program Studi</td><td>{{ mhs.prodi.namaprodi }}</td></tr>
+    </table>
+</div>
+
+<table class="transkrip-table">
+<tr>
+    <!-- Kolom Kiri -->
+    <td style="width:50%; vertical-align:top;">
+        <table class="inner-table">
+            <tr><th>No</th><th>Kode MK</th><th>Mata Kuliah</th></tr>
+            {% for n in left_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ n.matakuliah.kodemk }}</td>
+                <td>{{ n.matakuliah.namamk }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </td>
+
+    <!-- Kolom Kanan -->
+    <td style="width:50%; vertical-align:top;">
+        <table class="inner-table">
+            <tr><th>No</th><th>Kode MK</th><th>Mata Kuliah</th></tr>
+            {% for n in right_list %}
+            <tr>
+                <td>{{ forloop.counter|add:left_list|length }}</td>
+                <td>{{ n.matakuliah.kodemk }}</td>
+                <td>{{ n.matakuliah.namamk }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </td>
+</tr>
+</table>
+
+<!-- Tombol Generate PDF -->
+<a href="{% url 'generate_transkrip_pdf' mhs.id %}" class="btn btn-sm btn-info">
+    <i class="bi bi-file-earmark-text"></i> Generate PDF
+</a>
+
+<p><b>Total SKS:</b> {{ total_sks }}</p>
+<p><b>IPK:</b> {{ ipk }}</p>
+
+</body>
+</html>
+
+
+
+
+
