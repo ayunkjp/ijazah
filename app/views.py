@@ -18,7 +18,7 @@ import io, os
 from django.db.models import IntegerField, F
 from django.db.models.functions import Cast, Substr, Length
 from reportlab.pdfgen import canvas
-import openpyxl
+import pandas as pd
 
 # Create your views here.
 def login_view(request):
@@ -533,6 +533,61 @@ def input_nilai(request):
     }
 
     return render(request, 'data/input_nilai.html', context)
+
+def import_nilai(request):
+    if request.method == "POST" and request.FILES.get("file_excel"):
+        file_excel = request.FILES["file_excel"]
+
+        try:
+            df = pd.read_excel(file_excel)
+        except Exception as e:
+            messages.error(request, f"Gagal membaca Excel: {e}")
+            return redirect("input_nilai")
+
+        inserted, skipped = 0, 0
+        logs = []
+
+        for _, row in df.iterrows():
+            nim = str(row.get("NIM", "")).strip()
+            kode_mk = str(row.get("KODE_MK", "")).strip()
+            huruf = str(row.get("HURUF_MUTU", "")).strip().upper()
+
+            # pastikan kolom penting ada nilainya
+            if not nim or not kode_mk or not huruf:
+                skipped += 1
+                logs.append(f"⚠️ Baris dilewati karena kosong: {row.to_dict()}")
+                continue
+
+            # cari mahasiswa berdasarkan NIM
+            mhs = Mahasiswa.objects.filter(nim=nim).first()
+            if not mhs:
+                skipped += 1
+                logs.append(f"❌ NIM {nim} tidak ditemukan di database Mahasiswa.")
+                continue
+
+            # cari matakuliah berdasarkan kode_mk
+            mk = MataKuliah.objects.filter(kodemk=kode_mk).first()
+            if not mk:
+                skipped += 1
+                logs.append(f"❌ KODE_MK {kode_mk} tidak ditemukan di database MataKuliah.")
+                continue
+
+            # simpan ke tabel nilai
+            Nilai.objects.update_or_create(
+                mahasiswa=mhs,
+                matakuliah=mk,
+                defaults={"nilai_huruf": huruf},
+            )
+            inserted += 1
+            logs.append(f"✅ {mhs.nim} ({mhs.nama}) - {mk.kodemk} ({mk.namamk}) → {huruf}")
+
+        # tampilkan hasil ke user
+        messages.success(request, f"Import selesai — {inserted} disimpan, {skipped} dilewati.")
+        print("\n".join(logs))  # ini akan tampil di terminal saat runserver
+
+        return redirect("input_nilai")
+
+    return render(request, "data/input_nilai.html")
 
 @login_required
 def mahasiswa_nilai_view(request):

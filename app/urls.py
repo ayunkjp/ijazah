@@ -34,6 +34,7 @@ urlpatterns = [
     #path('nilai/detail/<int:mahasiswa_id>/', views.mahasiswa_nilai_detail, name='mahasiswa_nilai_detail'),
     path('nilai/', views.nilai_list, name='nilai_list'),
     path('input_nilai/', views.input_nilai, name='input_nilai'),
+    path('import_nilai/', views.import_nilai, name='import_nilai'),
     path('mahasiswa/nilai/', views.mahasiswa_nilai_view, name='mahasiswa_nilai'),
     path('mahasiswa/<int:mhs_id>/generate-ijazah/', views.generate_ijazah, name='generate_ijazah'),
     #path('mahasiswa/<int:mhs_id>/generate-transkrip/', views.generate_transkrip, name='generate_transkrip'),

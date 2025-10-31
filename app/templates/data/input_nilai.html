@@ -36,23 +36,20 @@
               </select>
             </div>
 
-            <form method="post" enctype="multipart/form-data" action="{% url 'import_nilai' %}">
+            {% comment %} <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
-              
-              <div class="mb-3">
-                <label for="file_excel" class="form-label">Upload File Excel Nilai</label>
-                <input 
-                  type="file" 
-                  class="form-control" 
-                  id="file_excel" 
-                  name="file_excel"
-                  accept=".xlsx,.xls"
-                  required
-                >
-              </div>
-
-              <button type="submit" class="btn btn-primary">Import Nilai</button>
+              <label>Upload File Excel Nilai:</label>
+              <input type="file" name="file_excel" accept=".xls,.xlsx" required>
+              <button type="submit">Upload</button>
             </form>
+
+            {% if messages %}
+              <ul>
+                {% for message in messages %}
+                  <li>{{ message }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %} {% endcomment %}
 
             <!-- PILIH MAHASISWA (MUNCUL SETELAH PRODI DIPILIH) -->
             {% if selected_prodi %}

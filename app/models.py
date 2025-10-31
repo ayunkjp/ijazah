@@ -77,13 +77,39 @@ class Mahasiswa(models.Model):
     def __str__(self):
         return f"{self.nim} - {self.nama}"
 
+    # def hitung_ipk(self):
+    #     nilai_list = self.nilai_list.select_related('matakuliah')
+    #     total_sks = sum([n.matakuliah.sks for n in nilai_list])
+    #     if total_sks == 0:
+    #         return 0.0
+    #     total_bobot = sum([n.nilai_angka() * n.matakuliah.sks for n in nilai_list])
+    #     return round(total_bobot / total_sks, 2)
+    
+    # def hitung_ipk(self):
+    #     nilai_list = self.nilai_list.select_related('matakuliah')
+    #     total_sks = sum([n.matakuliah.sks for n in nilai_list])
+    #     if total_sks == 0:
+    #         return "0,00"
+
+    #     total_bobot = sum([n.nilai_angka() * n.matakuliah.sks for n in nilai_list])
+    #     ipk = total_bobot / total_sks
+
+    #     # Format dua digit desimal dan ubah titik ke koma
+    #     return f"{ipk:.2f}".replace('.', ',')
+    
     def hitung_ipk(self):
         nilai_list = self.nilai_list.select_related('matakuliah')
         total_sks = sum([n.matakuliah.sks for n in nilai_list])
         if total_sks == 0:
             return 0.0
+
         total_bobot = sum([n.nilai_angka() * n.matakuliah.sks for n in nilai_list])
-        return round(total_bobot / total_sks, 2)
+        return round(total_bobot / total_sks, 2)  # float untuk perbandingan
+
+
+    def hitung_ipk_display(self):
+        ipk = self.hitung_ipk()
+        return f"{ipk:.2f}".replace('.', ',')
 
 # ==========================
 # Mata Kuliah
