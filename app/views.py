@@ -12,12 +12,13 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Tabl
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from datetime import datetime
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY, TA_RIGHT
 from reportlab.pdfbase.ttfonts import TTFont
 import io, os
 from django.db.models import IntegerField, F
 from django.db.models.functions import Cast, Substr, Length
 from reportlab.pdfgen import canvas
+import openpyxl
 
 # Create your views here.
 def login_view(request):
@@ -428,6 +429,7 @@ def delete_matakuliah(request, id):
 #         'ipk': ipk,
 #     })
 
+@login_required
 def nilai_list(request):
     prodi_id = request.GET.get('prodi')
     mahasiswa_id = request.GET.get('mahasiswa')
@@ -461,6 +463,7 @@ def nilai_list(request):
     }
     return render(request, 'data/nilai.html', context)
 
+@login_required
 def input_nilai(request):
     prodi_list = Prodi.objects.all()
     mahasiswa_list = None
@@ -531,7 +534,7 @@ def input_nilai(request):
 
     return render(request, 'data/input_nilai.html', context)
 
-
+@login_required
 def mahasiswa_nilai_view(request):
     prodi_id = request.GET.get('prodi_id')
     prodi_list = Prodi.objects.all().order_by('namaprodi')
@@ -738,6 +741,7 @@ def mahasiswa_nilai_view(request):
 pdfmetrics.registerFont(TTFont('Times', 'static/fonts/times.ttf'))
 pdfmetrics.registerFont(TTFont('Times-Bold', 'static/fonts/timesbd.ttf'))
 pdfmetrics.registerFont(TTFont('Times-Italic', 'static/fonts/timesi.ttf'))
+pdfmetrics.registerFont(TTFont('Times-BoldItalic', 'static/fonts/timesbi.ttf'))
 
 #Generate Transkrip
 @login_required
@@ -778,7 +782,7 @@ def generate_transkrip_pdf(request, mhs_id):
     elements.append(Spacer(1, 0.5*cm))
     elements.append(Paragraph("<b>TRANSKRIP AKADEMIK</b>", style_title))
     elements.append(Spacer(1, 0.1*cm))
-    elements.append(Paragraph(f"<b>Nomor:</b> {mahasiswa.notranskip}", style_sub))
+    elements.append(Paragraph(f"<b>Nomor :</b> {mahasiswa.notranskip}", style_sub))
     elements.append(Spacer(1, 0.5*cm))
 
     # ----------------------------
@@ -819,10 +823,10 @@ def generate_transkrip_pdf(request, mhs_id):
     # Data kiri (4 baris)
     info_kiri_data = [
         [Paragraph("Nama", style_label), Paragraph(f": {mahasiswa.nama}", style_value)],
-        [Paragraph("Nomor Induk Kependudukan", style_label), Paragraph(f": {mahasiswa.nik}", style_value)],
+        [Paragraph("Nomor Induk Mahasiswa", style_label), Paragraph(f": {mahasiswa.nim}", style_value)],
         [Paragraph("Tempat, Tanggal Lahir", style_label),
         Paragraph(f": {mahasiswa.tempatlahir},<br/>&nbsp;&nbsp;{tanggal_lahir_fmt}", style_value)],
-        [Paragraph("Nomor Induk Mahasiswa", style_label), Paragraph(f": {mahasiswa.nim}", style_value)],
+        [Paragraph("Nomor Induk Kependudukan", style_label), Paragraph(f": {mahasiswa.nik}", style_value)],
     ]
 
     # Data kanan (4 baris)
@@ -1024,25 +1028,25 @@ def generate_transkrip_pdf(request, mhs_id):
     ]))
 
     elements.append(judul_table)
-    elements.append(Spacer(1, 14))
+    elements.append(Spacer(1, 18))
 
     # Kolom TTD otomatis
     nama_rektor = mahasiswa.prodi.fakultas.pimpinanpt
-    nipt_rektor = "03.0820.12071956"  # jika belum ada kolom, bisa diisi manual
+    nipt_rektor = "103.0925.01091969"  # jika belum ada kolom, bisa diisi manual
 
     # Ambil data rektor
     nama_rektor = mahasiswa.prodi.fakultas.pimpinanpt
-    nipt_rektor = "03.0820.12071956"  # placeholder jika belum ada data
+    nipt_rektor = "103.0925.01091969"  # placeholder jika belum ada data
 
     # Kolom TTD dengan format lengkap
-    kota_foto = "\n\n\n\n(Foto)"  # Bisa diganti dengan Image kalau ada
+    kota_foto = "\n\n\n\n(Foto 4×6 cm)"  # Bisa diganti dengan Image kalau ada
 
     # Data TTD 3 kolom
     ttd_data = [
         [
             f"Dekan,\nFakultas {mahasiswa.prodi.fakultas.namafakultas}\n\n\n\n\n\n{mahasiswa.prodi.fakultas.namadekan}\nNIPT: {mahasiswa.prodi.fakultas.nipt}",
             kota_foto,
-            f"Rektor\nPerguruan Tinggi\n\n\n\n\n\n{nama_rektor}\nNIPT: {nipt_rektor}"
+            f"Rektor,\n\n\n\n\n\n\n{nama_rektor}\nNIPT: {nipt_rektor}"
         ]
     ]
 
@@ -1071,6 +1075,330 @@ def generate_transkrip_pdf(request, mhs_id):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f'Transkrip_{mahasiswa.nim}.pdf')
 
+@login_required
+def generate_transkrip_pdfen(request, mhs_id):
+    mahasiswa = Mahasiswa.objects.select_related('prodi', 'prodi__fakultas').get(id=mhs_id)
+    buffer = io.BytesIO()
+
+    # Ukuran Folio
+    folio_size = (21.5*cm, 33*cm)
+    margin = 0.5*cm
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=folio_size,
+        topMargin=3.0*cm,  # <-- margin atas diperbesar
+        bottomMargin=margin,
+        leftMargin=margin,
+        rightMargin=margin
+    )
+
+    elements = []
+
+    # ----------------------------
+    # Styles
+    # ----------------------------
+    style_center = ParagraphStyle(name='Center', fontName='Times', fontSize=9, leading=10, alignment=TA_CENTER)
+    style_left = ParagraphStyle(name='Left', fontName='Times', fontSize=8, leading=10, alignment=TA_LEFT)
+    style_header = ParagraphStyle(name='Header', fontName='Times', fontSize=8, leading=9, alignment=TA_CENTER)
+    style_sub = ParagraphStyle(name='Info', fontName='Times', fontSize=12, leading=10, alignment=TA_CENTER)
+    style_info = ParagraphStyle(name='Info', fontName='Times', fontSize=11, leading=10, alignment=TA_LEFT)
+    style_title = ParagraphStyle(name='Title', fontName='Times-Bold', fontSize=18, leading=16, alignment=TA_CENTER)
+    # = ParagraphStyle(name='Summary', fontName='Times', fontSize=12, leading=14, alignment=TA_LEFT)
+    style_catatan = ParagraphStyle(name='Catatan', fontName='Times-Italic', fontSize=8, leading=10, alignment=TA_LEFT)
+    style_judul = ParagraphStyle(name='Judul', fontName='Times', fontSize=12, leading=14, alignment=TA_LEFT)
+
+    # ----------------------------
+    # Header
+    # ----------------------------
+    elements.append(Spacer(1, 0.5*cm))
+    elements.append(Paragraph("<b>ACADEMIC TRANSCRIPT</b>", style_title))
+    elements.append(Spacer(1, 0.1*cm))
+    elements.append(Paragraph(f"<b>Number :</b> {mahasiswa.notranskip}", style_sub))
+    elements.append(Spacer(1, 0.5*cm))
+
+    # ----------------------------
+    # Data mahasiswa 2 kolom sejajar
+    # ----------------------------
+    # ----------------------------
+    # Data Mahasiswa - Dua Tabel Kiri dan Kanan
+    # ----------------------------
+
+    # Style untuk label dan value (lebih rapat)
+    style_label = ParagraphStyle(
+        name='Label',
+        fontName='Times',
+        fontSize=12,
+        leading=13,          # jarak antarbaris teks di dalam cell
+        alignment=TA_LEFT
+    )
+
+    style_value = ParagraphStyle(
+        name='Value',
+        fontName='Times',
+        fontSize=12,
+        leading=13,
+        alignment=TA_LEFT
+    )
+
+    # Format tanggal lahir manual ke Bahasa inggris
+    tgl_lahir = mahasiswa.tgllahir.strftime("%B %d, %Y")
+    tgl_yudisium = mahasiswa.tglyudisium.strftime("%B %d, %Y")
+
+    # Data kiri (4 baris)
+    info_kiri_data = [
+        [Paragraph("Name", style_label), Paragraph(f": {mahasiswa.nama}", style_value)],
+        [Paragraph("Student Identification Number", style_label), Paragraph(f": {mahasiswa.nim}", style_value)],
+        [Paragraph("Born in", style_label),
+        Paragraph(f": {mahasiswa.tempatlahir},<br/>&nbsp;&nbsp;{tgl_lahir}", style_value)],
+        [Paragraph("National Identification Number", style_label), Paragraph(f": {mahasiswa.nik}", style_value)],
+    ]
+
+    # Data kanan (4 baris)
+    info_kanan_data = [
+        [Paragraph("Faculty", style_label), Paragraph(f": {mahasiswa.prodi.fakultas.dekan_en}", style_value)],
+        [Paragraph("Study Program", style_label), Paragraph(f": {mahasiswa.prodi.namaprodi_en}", style_value)],
+        [Paragraph("Accreditation", style_label),
+        Paragraph(f": {mahasiswa.prodi.akreditasi}<br/>&nbsp;&nbsp;{mahasiswa.prodi.noakreditasi}", style_value)],
+        [Paragraph("Graduation Date", style_label), Paragraph(f": {tgl_yudisium}", style_value)],
+    ]
+
+    # Buat dua tabel (kiri dan kanan)
+    tabel_kiri = Table(info_kiri_data, colWidths=[5.4*cm, 8*cm])
+    tabel_kanan = Table(info_kanan_data, colWidths=[3*cm, 8*cm])
+
+    for t in [tabel_kiri, tabel_kanan]:
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (-1,-1), 'Times'),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 0.5),  # lebih rapat
+            ('TOPPADDING', (0,0), (-1,-1), 0.5),     # lebih rapat
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('RIGHTPADDING', (0,0), (-1,-1), 2),
+        ]))
+
+    # Gabungkan dua tabel kiri dan kanan sejajar
+    gabung_tabel_info = Table(
+        [[tabel_kiri, tabel_kanan]],
+        colWidths=[10.5*cm, 10.5*cm],
+        hAlign='LEFT'
+    )
+
+    gabung_tabel_info.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+    ]))
+
+    elements.append(gabung_tabel_info)
+    elements.append(Spacer(1, 6))  # agak kecil biar rapat dengan bagian bawah
+
+    # ----------------------------
+    # Tabel Nilai Dua Kolom
+    # ----------------------------
+    nilai_list = list(mahasiswa.nilai_list.select_related('matakuliah').all().order_by('matakuliah__semester', 'matakuliah__kodemk'))
+    total_sks = sum([n.matakuliah.sks for n in nilai_list])
+    ipk = mahasiswa.hitung_ipk()
+
+    mid = (len(nilai_list)+1)//2
+    kolom_kiri = nilai_list[:mid]
+    kolom_kanan = nilai_list[mid:]
+
+    nomor_global = list(range(1, len(nilai_list)+1))
+    nomor_kiri = nomor_global[:len(kolom_kiri)]
+    nomor_kanan = nomor_global[len(kolom_kiri):]
+
+    page_width = folio_size[0] - margin*2
+    spacer_width = 0.5*cm
+    total_table_width = page_width - spacer_width
+
+    def buat_tabel(nilai_sublist, nomor_list):
+        headers = ["No", "Code", "Subjects", "Credit", "Score", "Grade Point"]
+        data = [[Paragraph(h, style_header) for h in headers]]
+        for idx, n in zip(nomor_list, nilai_sublist):
+            if n:
+                mk = n.matakuliah
+                # Hilangkan koma dari angka mutu
+                nilai_mutu = int(round(n.nilai_angka()))
+                row = [
+                    Paragraph(str(idx), style_center),
+                    Paragraph(mk.kodemk, style_center),
+                    Paragraph(mk.course, style_left),
+                    Paragraph(str(mk.sks), style_center),
+                    Paragraph(n.nilai_huruf, style_center),
+                    Paragraph(str(nilai_mutu), style_center)  # <-- angka mutu tanpa koma
+                ]
+                data.append(row)
+            else:
+                data.append(['', '', '', '', '', ''])
+        col_widths = [0.8*cm, 1.4*cm, None, 0.8*cm, 1*cm, 1*cm]
+        t = Table(data, colWidths=col_widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (-1,-1), 'Times'),
+            ('FONTSIZE', (0,0), (-1,-1), 8),
+            ('ALIGN', (0,0), (-1,0), 'CENTER'),
+            ('ALIGN', (0,1), (1,-1), 'CENTER'),
+            ('ALIGN', (3,1), (5,-1), 'CENTER'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+            ('LEFTPADDING', (0,0), (-1,-1), 1),
+            ('RIGHTPADDING', (0,0), (-1,-1), 1),
+            ('TOPPADDING', (0,0), (-1,-1), 1),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 1),
+        ]))
+        return t
+
+    tabel_kiri = buat_tabel(kolom_kiri, nomor_kiri)
+    tabel_kanan = buat_tabel(kolom_kanan, nomor_kanan)
+
+    usable_width = folio_size[0] - (margin * 2.5)
+    spacer_width = 0.5 * cm
+
+    # Bagi dua untuk tabel kiri & kanan
+    half_width = (usable_width - spacer_width) / 2
+
+    # Buat tabel kiri-kanan simetris menempel margin kiri dan kanan
+    table_berdampingan = Table(
+        [[tabel_kiri, Spacer(spacer_width, 0), tabel_kanan]],
+        colWidths=[half_width, spacer_width, half_width],
+        hAlign='LEFT'
+    )
+
+    table_berdampingan.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(KeepTogether(table_berdampingan))
+    elements.append(Spacer(1, 4))
+
+    # ----------------------------
+    # Footer
+    # ----------------------------
+    elements.append(Spacer(1, 9))
+    elements.append(Paragraph(
+        "*) If there are any scribbles, regardless of the form/reason, this transcript will be declared invalid",
+        style_catatan
+    ))
+    elements.append(Spacer(1, 4))
+
+    # Total SKS, IPK, Predikat
+    # Tentukan predikat
+    if ipk >= 3.51:
+        predikat = "Cum Laude"
+    elif ipk >= 3.01:
+        predikat = "Highly Satisfactory"
+    elif ipk >= 2.76:
+        predikat = "Satisfactory"
+    else:
+        predikat = "To Pass"
+
+    # Style biasa untuk label
+    style_label = ParagraphStyle(name='Label', fontName='Times', fontSize=12, alignment=TA_LEFT)
+    # Style bold untuk value
+    style_value = ParagraphStyle(name='Value', fontName='Times-Bold', fontSize=12, alignment=TA_LEFT)
+
+    # Data summary: label biasa, value bold
+    summary_data = [
+        [Paragraph("Total Credit", style_label), Paragraph(f"= {total_sks}", style_value)],
+        [Paragraph("Cummulative Achievement Index", style_label), Paragraph(f"= {ipk:.2f}", style_value)],
+        [Paragraph("Graduation Status", style_label), Paragraph(f"= {predikat}", style_value)],
+    ]
+
+    # Buat tabel summary lebih mepet ke kiri
+    summary_table = Table(summary_data, colWidths=[6*cm, 6*cm], hAlign='LEFT')
+    summary_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (0,-1), 'LEFT'),   # label kiri
+        ('ALIGN', (1,0), (1,-1), 'LEFT'),   # value kiri
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 1),
+        ('TOPPADDING', (0,0), (-1,-1), 1),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),  # menempel ke margin kiri
+    ]))
+
+    elements.append(summary_table)
+    elements.append(Spacer(1, 6))
+
+    # Judul skripsi
+    # Style label
+    style_label = ParagraphStyle(name='Label', fontName='Times', fontSize=12, alignment=TA_LEFT)
+    # Style judul bold
+    style_judul = ParagraphStyle(name='Judul', fontName='Times-Bold', fontSize=12, alignment=TA_LEFT)
+
+    # Hitung lebar halaman maksimal
+    page_width = folio_size[0]  # jika Anda pakai folio_size
+    left_margin = 0.5*cm  # misal sama seperti margin dokumen
+    right_margin = 0.5*cm
+    total_width = page_width - left_margin - right_margin
+
+    # Tabel 2 kolom: label + judul
+    judul_data = [
+        [Paragraph("Thesis Title :", style_label),
+        Paragraph(mahasiswa.judul, style_judul)]
+    ]
+
+    # Kolom pertama kecil, kolom kedua sisa halaman
+    judul_table = Table(judul_data, colWidths=[3*cm, total_width - 4*cm], hAlign='LEFT')
+    judul_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),  # mepet kiri
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 1),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 1),
+    ]))
+
+    elements.append(judul_table)
+    elements.append(Spacer(1, 18))
+
+    # Kolom TTD otomatis
+    nama_rektor = mahasiswa.prodi.fakultas.pimpinanpt
+    nipt_rektor = "103.0925.01091969"  # jika belum ada kolom, bisa diisi manual
+
+    # Ambil data rektor
+    nama_rektor = mahasiswa.prodi.fakultas.pimpinanpt
+    nipt_rektor = "103.0925.01091969"  # placeholder jika belum ada data
+
+    # Kolom TTD dengan format lengkap
+    kota_foto = "\n\n\n\n(Foto 4×6 cm)"  # Bisa diganti dengan Image kalau ada
+
+    # Data TTD 3 kolom
+    ttd_data = [
+        [
+            f"Dekan,\nFakultas {mahasiswa.prodi.fakultas.namafakultas}\n\n\n\n\n\n{mahasiswa.prodi.fakultas.namadekan}\nNIPT: {mahasiswa.prodi.fakultas.nipt}",
+            kota_foto,
+            f"Rektor,\n\n\n\n\n\n\n{nama_rektor}\nNIPT: {nipt_rektor}"
+        ]
+    ]
+
+    # Lebar masing-masing kolom tetap sama
+    col_widths = [8*cm, 4*cm, 8*cm]
+
+    ttd_table = Table(ttd_data, colWidths=col_widths)
+    ttd_table.setStyle(TableStyle([
+        ('FONTNAME', (0,0), (-1,-1), 'Times-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 12),
+        ('ALIGN', (0,0), (0,-1), 'CENTER'),   # Dekan tetap center
+        ('ALIGN', (1,0), (1,-1), 'RIGHT'),    # Foto geser ke kanan
+        ('ALIGN', (2,0), (2,-1), 'CENTER'),   # Rektor tetap center
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (1,0), (1,-1), 15),   # Geser isi kolom foto ke kanan
+        ('RIGHTPADDING', (1,0), (1,-1), 0),
+        ('LEFTPADDING', (0,0), (0,-1), 1),
+        ('RIGHTPADDING', (2,0), (2,-1), 1),
+    ]))
+    elements.append(ttd_table)
+
+    # ----------------------------
+    # Build PDF
+    # ----------------------------
+    doc.build(elements)
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f'Transcript_{mahasiswa.nim}.pdf')
+
 #Generate Ijazah
 @login_required
 def generate_ijazah(request, mhs_id):
@@ -1086,25 +1414,29 @@ def generate_ijazah(request, mhs_id):
     pdfmetrics.registerFont(TTFont("Times-Roman", os.path.join(font_path, "times.ttf")))
     pdfmetrics.registerFont(TTFont("Times-Bold", os.path.join(font_path, "timesbd.ttf")))
     pdfmetrics.registerFont(TTFont("Times-Italic", os.path.join(font_path, "timesi.ttf")))
+    pdfmetrics.registerFont(TTFont("Times-BoldItalic", os.path.join(font_path, "timesbi.ttf")))
 
     # ========== BUFFER & DOCUMENT ==========
+    A4_CUSTOM = (21 * cm, 29.7 * cm)
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(A4),
-        rightMargin=0.3 * cm,
-        leftMargin=0.3 * cm,     # ← ubah dari 0 ke 0.3 cm
-        topMargin=0.3 * cm,
-        bottomMargin=0.3 * cm,
+        pagesize=landscape(A4_CUSTOM),  # ← gunakan ukuran custom
+        rightMargin=0.1 * cm,
+        leftMargin=0.1 * cm,
+        topMargin=0.1 * cm,
+        bottomMargin=0.1 * cm,
     )
 
     # ========== STYLES ==========
     styles = getSampleStyleSheet()
     base_font = 10
-    base_leading = 12
+    base_leading = 10
     styles.add(ParagraphStyle(name='LeftSmall', alignment=TA_LEFT, fontSize=base_font, leading=base_leading, fontName='Times-Roman'))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER, fontSize=base_font, leading=base_leading, fontName='Times-Roman'))
-    styles.add(ParagraphStyle(name='BigTitle', alignment=TA_CENTER, fontSize=base_font+3, leading=base_leading+2, spaceAfter=15, fontName='Times-Bold'))
+    styles.add(ParagraphStyle(name='Center1', alignment=TA_RIGHT, fontSize=base_font, leading=base_leading, fontName='Times-Roman'))
+    styles.add(ParagraphStyle(name='BigTitle', alignment=TA_CENTER, fontSize=base_font+8,leading=base_leading, fontName='Times-Bold'))
     styles.add(ParagraphStyle(name='Bold', alignment=TA_CENTER, fontSize=base_font, leading=base_leading, fontName='Times-Bold'))
     styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY, fontSize=10.5, leading=base_leading, fontName='Times-Roman'))
 
@@ -1117,7 +1449,7 @@ def generate_ijazah(request, mhs_id):
             Paragraph(f": {mhs.noijazah or '-'}", styles['LeftSmall'])
         ],
         [
-            Paragraph("Diploma Number", styles['LeftSmall']),
+            Paragraph('<font face="Times-Italic">National Diploma Number</font>', styles['LeftSmall']),
             ""
         ],
         [
@@ -1125,7 +1457,7 @@ def generate_ijazah(request, mhs_id):
             Paragraph(f": {fakultas.akrelembaga or '-'}", styles['LeftSmall'])
         ],
         [
-            Paragraph("Awarding Institution’s License", styles['LeftSmall']),
+            Paragraph('<font face="Times-Italic">Awarding Institution’s License</font>', styles['LeftSmall']),
             ""
         ],
     ]
@@ -1147,7 +1479,7 @@ def generate_ijazah(request, mhs_id):
     ]))
     header_table.hAlign = 'LEFT'     # pastikan tabel rata ke kiri margin
     elements.append(header_table)
-    elements.append(Spacer(1, 80)) #spase after header
+    elements.append(Spacer(1, 100)) #spase after header
 
 
     # Style khusus untuk nama mahasiswa
@@ -1155,7 +1487,7 @@ def generate_ijazah(request, mhs_id):
         name='NamaTitle',
         alignment=TA_CENTER,
         fontSize=16,
-        leading=18,
+        leading=14,
         fontName='Times-Bold'
     ))
     
@@ -1179,24 +1511,24 @@ def generate_ijazah(request, mhs_id):
         name='NIKTitle',
         alignment=TA_CENTER,
         fontSize=14,
-        leading=18,
+        leading=14,
         fontName='Times-Bold'
     ))
 
     # ========== IDENTITAS MAHASISWA ==========
-    elements.append(Paragraph("<b>Diberikan kepada</b> / is conferred upon", styles['Konten1']))
+    elements.append(Paragraph('Diberikan kepada / <font face="Times-Italic">is conferred upon</font>', styles['Konten1']))
     elements.append(Spacer(1, 6))
 
     elements.append(Paragraph(f"<b>{mhs.nama.upper()}</b>", styles['NamaTitle']))  # font 16
+    elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph('Nomor Induk Mahasiswa / <font face="Times-Italic">Student Identification Number</font>', styles['Konten2']))
+    elements.append(Paragraph(f"{mhs.nim}", styles['NIKTitle']))
     elements.append(Spacer(1, 6))
 
-    elements.append(Paragraph("Nomor Induk Mahasiswa / Student Identification Number", styles['Konten2']))
-    elements.append(Paragraph(f"{mhs.nim}", styles['NIKTitle']))
-    elements.append(Spacer(1, 4))
-
-    elements.append(Paragraph("Nomor Induk Kependudukan / ID Number", styles['Konten2']))
+    elements.append(Paragraph('Nomor Induk Kependudukan / <font face="Times-Italic">National Identification Number</font>', styles['Konten2']))
     elements.append(Paragraph(f"{mhs.nik}", styles['NIKTitle']))
-    elements.append(Spacer(1, 4))
+    elements.append(Spacer(1, 6))
 
     bulan_indonesia = {
         1: "Januari",
@@ -1216,7 +1548,7 @@ def generate_ijazah(request, mhs_id):
     tgl = mhs.tgllahir
     tanggal_lahir = f"{tgl.day} {bulan_indonesia[tgl.month]} {tgl.year}"
 
-    elements.append(Paragraph(f"lahir di / born in", styles['Konten2']))
+    elements.append(Paragraph(f'lahir di / <font face="Times-Italic">born in</font>', styles['Konten2']))
     elements.append(Paragraph(f"{mhs.tempatlahir}, {tanggal_lahir}", styles['NIKTitle']))
 
     #elements.append(Paragraph(f"lahir di / born in", styles['Konten2'])) 
@@ -1224,76 +1556,153 @@ def generate_ijazah(request, mhs_id):
     elements.append(Spacer(1, 1))
 
     # ========== PARAGRAF PROGRAM STUDI & FAKULTAS ==========
-    tgl_yudisium = mhs.tglyudisium or datetime.now()
-    tanggal_indo = tgl_yudisium.strftime('%d %B %Y')
-    tanggal_en = tgl_yudisium.strftime('%B %d, %Y')
+    tgl = mhs.tglyudisium
+    tglyudisium = f"{tgl.day} {bulan_indonesia[tgl.month]} {tgl.year}"
 
     # Hitung lebar area teks (A4 landscape)
     halaman_lebar, _ = landscape(A4)
-    lebar_teks = halaman_lebar - (5 * cm * 2)  # margin kiri dan kanan 5 cm
+    lebar_teks = halaman_lebar - (4.5 * cm * 2)  # margin kiri dan kanan 5 cm
 
-    # Paragraf dua bahasa
-    paragraf_dua_bahasa = (
-        f"Telah menyelesaikan program <b>Sarjana Terapan</b> pada Program Studi "
-        f"<b>{prodi.namaprodi}</b> ({prodi.kode_prodi}), Terakreditasi: <b>{prodi.akreditasi}</b> "
-        f"(Nomor Akreditasi: {prodi.noakreditasi or '-'}), Fakultas <b>{fakultas.namafakultas}</b>, "
-        f"Universitas Mayasari Bakti, pada tanggal <b>{tanggal_indo}</b>. "
-        f"Has completed the <b>Applied Bachelor Degree</b> program at "
-        f"<b>{prodi.namaprodi_en or prodi.namaprodi}</b> ({prodi.kode_prodi}) Study Program, "
-        f"Accredited: <b>{prodi.akreditasi}</b>, "
-        f"{fakultas.namafakultas_en or fakultas.namafakultas}, "
-        f"Mayasari Bakti University, on <b>{tanggal_en}</b>."
+    mhs_tglyudisium = mhs.tglyudisium  # bisa dari database mhs.tglyudisium
+    if isinstance(mhs_tglyudisium, str):
+        tgl = datetime.strptime(mhs_tglyudisium, "%Y-%m-%d")
+    else:
+        tgl = mhs_tglyudisium  # jika sudah datetime/date
+
+    # Format ke bahasa Inggris
+    formatted_date = tgl.strftime("%B %d, %Y")
+    
+    bold_italic_style = ParagraphStyle(
+        'BoldItalic',
+        parent=styles['Konten1'],
+        fontName='Times-BoldItalic',
+        alignment=TA_LEFT
     )
 
-    # Masukkan ke tabel biar bisa diatur posisinya di tengah
+    # Paragraf dua bahasa (rata kiri-kanan)
+    paragraf_dua_bahasa = (
+        f"telah menyelesaikan program {fakultas.kodefakultas} pada Program Studi\n"
+        f"<b>{prodi.namaprodi}</b> ({prodi.kode_prodi}), Terakreditasi : <b>{prodi.akreditasi}</b> "
+        f"(Nomor Akreditasi : {prodi.noakreditasi or '-'}), Fakultas {fakultas.dekan}, "
+        f'Universitas Mayasari Bakti, pada tanggal <font face="Times-Bold">{tglyudisium}</font>.<br/>'
+        f'<font face="Times-Italic">has completed the {fakultas.namafakultas_en} program at\n</font>'
+        f'<font face="Times-Italic"><b>{prodi.namaprodi_en or prodi.namaprodi}</b> ({prodi.kode_prodi}) Study Program,\n</font>'
+        f'<font face="Times-Italic">Accredited : <b>{prodi.akreditasi}</b>, </font>'
+        f'<font face="Times-Italic">(Accreditation Number : {prodi.noakreditasi or "-"}), Faculty of {fakultas.dekan_en}, </font>'
+        f'<font face="Times-Italic">Mayasari Bakti University, on </font>'
+        f'<font face="Times-BoldItalic">{formatted_date}</font>.'
+    )
+
+    # Bungkus dalam Table agar teks di tengah halaman tapi justify di dalamnya
     paragraf_table = Table(
-        [[Paragraph(paragraf_dua_bahasa, styles['Justify'])]],
+        [[Paragraph(paragraf_dua_bahasa, styles['Center'])]],
         colWidths=[lebar_teks]
     )
     paragraf_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),     # posisikan tabel di tengah
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # posisi tabel di tengah
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
     ]))
 
     elements.append(paragraf_table)
-    elements.append(Spacer(1, 15))
-
+    elements.append(Spacer(1, 4))
 
     # ========== GELAR ==========
-    elements.append(Paragraph("Kepadanya diberikan gelar akademik", styles['Center']))
-    elements.append(Paragraph("Therefore, it is awarded the academic degree of", styles['Center']))
-    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Kepadanya diberikan gelar akademik", styles['Konten2']))
+    elements.append(Paragraph('<font face="Times-Italic">Therefore, it is awarded the academic degree of</font>', styles['Konten2']))
+    elements.append(Spacer(1, 2))
+
     elements.append(Paragraph(f"<b>{prodi.gelar or '-'}</b>", styles['BigTitle']))
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph("beserta segala hak dan kehormatan yang melekat pada gelar tersebut.", styles['Center']))
-    elements.append(Paragraph("with all the rights and privileges pertaining thereto.", styles['Center']))
-    elements.append(Spacer(1, 15))
+
+    elements.append(Paragraph("beserta segala hak dan kehormatan yang melekat pada gelar tersebut.", styles['Konten2']))
+    elements.append(Paragraph('<font face="Times-Italic">with all the rights and privileges pertaining thereto.</font>', styles['Konten2']))
+    elements.append(Spacer(1, 4))
+
+    bulan_indonesia = {
+        1: "Januari",
+        2: "Februari",
+        3: "Maret",
+        4: "April",
+        5: "Mei",
+        6: "Juni",
+        7: "Juli",
+        8: "Agustus",
+        9: "September",
+        10: "Oktober",
+        11: "November",
+        12: "Desember"
+    }
+
+    tgl = mhs.tglwisuda
+    tgl_wisuda = f"{tgl.day} {bulan_indonesia[tgl.month]} {tgl.year}"
+
+    mhs_tglwisuda = mhs.tglwisuda  # bisa dari database mhs.tglyudisium
+    if isinstance(mhs_tglwisuda, str):
+        tgl = datetime.strptime(mhs_tglwisuda, "%Y-%m-%d")
+    else:
+        tgl = mhs_tglwisuda  # jika sudah datetime/date
+
+    # Format ke bahasa Inggris
+    formatted_date1 = tgl.strftime("%B %d, %Y")
 
     # ========== TANGGAL ==========
-    elements.append(Paragraph(f"Diterbitkan di Tasikmalaya, {tanggal_indo}.", styles['Center']))
-    elements.append(Paragraph(f"Issued in Tasikmalaya on {tanggal_en}.", styles['Center']))
-    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(f'Diterbitkan di Tasikmalaya, <font face="Times-Bold">{tgl_wisuda}.</font>', styles['Konten2']))
+    elements.append(Paragraph(
+        f'<font face="Times-Italic">Issued in Tasikmalaya on </font>.'
+        f'<font face="Times-BoldItalic">{formatted_date1}</font>.',
+        styles['Konten2']
+    ))
+    elements.append(Spacer(1, 8))
 
     # ========== TANDA TANGAN ==========
+    # ========== TANDA TANGAN ==========
     data = [
-        ["Dekan / Dean", "", "Rektor / Rector"],
-        [f"{fakultas.namafakultas} / {fakultas.namafakultas_en or ''}", "", "Universitas Mayasari Bakti"],
+        [
+            Paragraph('<font face="Times-Bold">Dekan</font> / <font face="Times-BoldItalic">Dean</font>', styles['Center']),
+            "",
+            Paragraph('<font face="Times-Bold">Rektor</font> / <font face="Times-BoldItalic">Rector</font>', styles['Center'])
+        ],
+        [
+            Paragraph(
+                f'<font face="Times-Bold">Fakultas {fakultas.dekan}</font> / '
+                f'<font face="Times-BoldItalic">Faculty of {fakultas.dekan_en or ""}</font>',
+                styles['Center']
+            )
+        ],
+
+        ["", "", ""],
+        ["", "", ""],
+        ["", Paragraph("(Foto 4×6 cm)", styles['Center1']), ""],
+        ["", "", ""],
         ["", "", ""],
         ["", "", ""],
         [f"{fakultas.namadekan}", "", "Dr. Yusuf Abdullah, S.E., M.M."],
         [f"NIPT : {fakultas.nipt or '-'}", "", "NIPT : 103.0925.01091969"],
     ]
-    ttd_table = Table(data, colWidths=[9 * cm, 1 * cm, 9 * cm])
+
+    # Kolom kiri dan kanan seimbang, kolom tengah untuk area foto sedikit lebih sempit
+    ttd_table = Table(data, colWidths=[8.5 * cm, 4 * cm, 8.5 * cm])
+
+    # Style tabel
     ttd_table.setStyle(TableStyle([
+        # Font dan ukuran
+        ('FONTNAME', (0, 0), (-1, -1), 'Times-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('LEADING', (0, 0), (-1, -1), 13),
+
+        # Rata tengah semua isi tabel
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
-        ('FONTSIZE', (0, 0), (-1, -1), base_font),
-        ('LEADING', (0, 0), (-1, -1), base_leading),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+        # Padding rapat biar proporsional
         ('TOPPADDING', (0, 0), (-1, -1), 0),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
     ]))
+
     elements.append(ttd_table)
 
     # ========== BUILD PDF ==========

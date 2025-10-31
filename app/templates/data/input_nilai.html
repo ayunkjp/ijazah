@@ -15,90 +15,119 @@
   <div class="alert alert-success">{{ message }}</div>
   {% endif %} {% endfor %}
 
-  <form method="get" class="row mb-4">
-    <!-- PILIH PRODI -->
-    <div class="col-md-3">
-      <label>Program Studi</label>
-      <select name="prodi" class="form-control" onchange="this.form.submit()">
-        <option value="">-- Pilih Prodi --</option>
-        {% for p in prodi_list %}
-        <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:'s' %}selected{% endif %}>
-          {{ p.namaprodi }}
-        </option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- PILIH MAHASISWA (MUNCUL SETELAH PRODI DIPILIH) -->
-    {% if selected_prodi %}
-    <div class="col-md-3">
-      <label>Mahasiswa</label>
-      <select name="mahasiswa" class="form-control" onchange="this.form.submit()">
-        <option value="">-- Pilih Mahasiswa --</option>
-        {% for m in mahasiswa_list %}
-        <option value="{{ m.id }}" {% if selected_mahasiswa == m.id|stringformat:'s' %}selected{% endif %}>
-          {{ m.nama }}
-        </option>
-        {% endfor %}
-      </select>
-    </div>
-    {% endif %}
-
-    <!-- PILIH ANGKATAN (MUNCUL SETELAH MAHASISWA DIPILIH) -->
-    {% if selected_mahasiswa %}
-<div class="col-md-3">
-  <label>Angkatan</label>
-  <select name="angkatan" class="form-select" onchange="this.form.submit()">
-    <option value="">-- Pilih Angkatan --</option>
-    {% for angkatan in angkatan_list %}
-      <option value="{{ angkatan }}" {% if angkatan|stringformat:'s' == selected_angkatan %}selected{% endif %}>
-        {{ angkatan }}
-      </option>
-    {% endfor %}
-  </select>
-</div>
-{% endif %}
-  </form>
-
-  {% if matakuliah_list and selected_mahasiswa %}
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="mahasiswa" value="{{ selected_mahasiswa }}">
-    <table class="table table-bordered table-sm">
-      <thead class="thead-light">
-        <tr>
-          <th width="15%">Kode MK</th>
-          <th>Nama Mata Kuliah</th>
-          <th width="8%">SKS</th>
-          <th width="15%">Nilai Huruf</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for mk in matakuliah_list %}
-          {% with nilai_skrg=nilai_exist|get_item:mk.id %}
-          <tr>
-            <td>{{ mk.kodemk }}</td>
-            <td>{{ mk.namamk }}</td>
-            <td>{{ mk.sks }}</td>
-            <td>
-              <input type="hidden" name="matakuliah_id" value="{{ mk.id }}">
-              <select name="nilai_huruf" class="form-select form-select-sm">
-                <option value="">-- Pilih Nilai --</option>
-                <option value="A" {% if nilai_skrg == "A" %}selected{% endif %}>A</option>
-                <option value="B" {% if nilai_skrg == "B" %}selected{% endif %}>B</option>
-                <option value="C" {% if nilai_skrg == "C" %}selected{% endif %}>C</option>
-                <option value="D" {% if nilai_skrg == "D" %}selected{% endif %}>D</option>
-                <option value="E" {% if nilai_skrg == "E" %}selected{% endif %}>E</option>
+  <div class="row">
+    <div class ="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Input Nilai Mahasiswa</h4>
+        </div>
+        <div class="card-body">
+          <form method="get" class="row mb-4">
+            <!-- PILIH PRODI -->
+            <div class="col-md-3">
+              <label>Program Studi</label>
+              <select name="prodi" class="form-control" onchange="this.form.submit()">
+                <option value="">-- Pilih Prodi --</option>
+                {% for p in prodi_list %}
+                <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:'s' %}selected{% endif %}>
+                  {{ p.namaprodi }}
+                </option>
+                {% endfor %}
               </select>
-            </td>
-          </tr>
-          {% endwith %}
-        {% endfor %}
-      </tbody>
-    </table>
-    <button type="submit" class="btn btn-primary btn-sm">Simpan Semua</button>
-  </form>
-  {% endif %}
+            </div>
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'import_nilai' %}">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="file_excel" class="form-label">Upload File Excel Nilai</label>
+                <input 
+                  type="file" 
+                  class="form-control" 
+                  id="file_excel" 
+                  name="file_excel"
+                  accept=".xlsx,.xls"
+                  required
+                >
+              </div>
+
+              <button type="submit" class="btn btn-primary">Import Nilai</button>
+            </form>
+
+            <!-- PILIH MAHASISWA (MUNCUL SETELAH PRODI DIPILIH) -->
+            {% if selected_prodi %}
+            <div class="col-md-3">
+              <label>Mahasiswa</label>
+              <select name="mahasiswa" class="form-control" onchange="this.form.submit()">
+                <option value="">-- Pilih Mahasiswa --</option>
+                {% for m in mahasiswa_list %}
+                <option value="{{ m.id }}" {% if selected_mahasiswa == m.id|stringformat:'s' %}selected{% endif %}>
+                  {{ m.nama }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+
+            <!-- PILIH ANGKATAN (MUNCUL SETELAH MAHASISWA DIPILIH) -->
+            {% if selected_mahasiswa %}
+            <div class="col-md-3">
+              <label>Angkatan</label>
+              <select name="angkatan" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Pilih Angkatan --</option>
+                {% for angkatan in angkatan_list %}
+                  <option value="{{ angkatan }}" {% if angkatan|stringformat:'s' == selected_angkatan %}selected{% endif %}>
+                    {{ angkatan }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+          </form>
+
+          {% if matakuliah_list and selected_mahasiswa %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="mahasiswa" value="{{ selected_mahasiswa }}">
+            <table class="table table-bordered table-sm">
+              <thead class="thead-light">
+                <tr>
+                  <th width="15%">Kode MK</th>
+                  <th>Nama Mata Kuliah</th>
+                  <th width="8%">SKS</th>
+                  <th width="15%">Nilai Huruf</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for mk in matakuliah_list %}
+                  {% with nilai_skrg=nilai_exist|get_item:mk.id %}
+                  <tr>
+                    <td>{{ mk.kodemk }}</td>
+                    <td>{{ mk.namamk }}</td>
+                    <td>{{ mk.sks }}</td>
+                    <td>
+                      <input type="hidden" name="matakuliah_id" value="{{ mk.id }}">
+                      <select name="nilai_huruf" class="form-select form-select-sm">
+                        <option value="">-- Pilih Nilai --</option>
+                        <option value="A" {% if nilai_skrg == "A" %}selected{% endif %}>A</option>
+                        <option value="B" {% if nilai_skrg == "B" %}selected{% endif %}>B</option>
+                        <option value="C" {% if nilai_skrg == "C" %}selected{% endif %}>C</option>
+                        <option value="D" {% if nilai_skrg == "D" %}selected{% endif %}>D</option>
+                        <option value="E" {% if nilai_skrg == "E" %}selected{% endif %}>E</option>
+                      </select>
+                    </td>
+                  </tr>
+                  {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary btn-sm mt-3">Simpan Semua</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock content %}
 

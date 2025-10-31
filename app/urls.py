@@ -40,5 +40,6 @@ urlpatterns = [
 
     #path('mahasiswa/<int:mhs_id>/transkrip/', views.generate_transkrip_html, name='generate_transkrip_html'),
     path('mahasiswa/<int:mhs_id>/transkrip-pdf/', views.generate_transkrip_pdf, name='generate_transkrip_pdf'),
+    path('mahasiswa/<int:mhs_id>/transkrip-pdfen/', views.generate_transkrip_pdfen, name='generate_transkrip_pdfen'),
 
 ]

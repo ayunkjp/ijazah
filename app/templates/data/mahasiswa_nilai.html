@@ -1,58 +1,99 @@
 {% extends 'master/base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <h4>{{ title }}</h4>
+<div class="container-fluid">
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Generate</li>
+  </ol>
 
-  <form method="get" class="mb-3">
-    <div class="row g-2">
-      <div class="col-md-4">
-        <select name="prodi_id" class="form-select" onchange="this.form.submit()">
-          <option value="">-- Pilih Program Studi --</option>
-          {% for p in prodi_list %}
-            <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:"s" %}selected{% endif %}>
-              {{ p.namaprodi }}
-            </option>
-          {% endfor %}
-        </select>
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretched-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Generate Menu</h4>
+        </div>
+      <div class="card-body">
+        <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">
+            <-- Kembali
+        </a>
+        
+        <div class="card-body">
+          <form method="get" class="mb-3">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <select name="prodi_id" class="form-select" onchange="this.form.submit()">
+                  <option value="">-- Pilih Program Studi --</option>
+                  {% for p in prodi_list %}
+                    <option value="{{ p.id }}" {% if selected_prodi == p.id|stringformat:"s" %}selected{% endif %}>
+                      {{ p.namaprodi }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </form>  
+          <hr />
+          <div class="table-responsive">
+            {% if selected_prodi %}
+                {% if mahasiswa_list %}
+                  <table id="mahasiswa" class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>NIM</th>
+                        <th>Nama</th>
+                        <th>Program Studi</th>
+                        <th>Action Generate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for m in mahasiswa_list %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ m.nim }}</td>
+                        <td>{{ m.nama }}</td>
+                        <td>{{ m.prodi.namaprodi }}</td>
+                        <td>
+                          <a href="{% url 'generate_ijazah' m.id %}" class="btn btn-sm btn-success">
+                            <i class="bi bi-file-earmark-text"></i> Ijazah
+                          </a>
+                          <a href="{% url 'generate_transkrip_pdf' m.id %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-file-earmark-text"></i> Transkrip
+                          </a>
+                          <a href="{% url 'generate_transkrip_pdfen' m.id %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-file-earmark-text"></i> Transcript
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <div class="alert alert-warning">Tidak ada mahasiswa dengan nilai di prodi ini.</div>
+                {% endif %}
+              {% else %}
+              <p>Pilih program studi untuk menampilkan mahasiswa yang sudah memiliki nilai.</p>
+            {% endif %}
+          </div>
       </div>
     </div>
-  </form>
-
-  {% if selected_prodi %}
-  {% if mahasiswa_list %}
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>NIM</th>
-          <th>Nama</th>
-          <th>Program Studi</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for m in mahasiswa_list %}
-        <tr>
-          <td>{{ m.nim }}</td>
-          <td>{{ m.nama }}</td>
-          <td>{{ m.prodi.namaprodi }}</td>
-          <td>
-            <a href="{% url 'generate_ijazah' m.id %}" class="btn btn-sm btn-success">
-              <i class="bi bi-file-earmark-text"></i> Generate Ijazah
-            </a>
-            <a href="{% url 'generate_transkrip_pdf' m.id %}" class="btn btn-sm btn-info">
-              <i class="bi bi-file-earmark-text"></i> Generate Transkip
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <div class="alert alert-warning">Tidak ada mahasiswa dengan nilai di prodi ini.</div>
-  {% endif %}
-{% else %}
-  <p>Pilih program studi untuk menampilkan mahasiswa yang sudah memiliki nilai.</p>
-{% endif %}
-
+  </div>
 </div>
-{% endblock %}
+{% endblock content %}
+{% block add_js %} 
+<!-- Format Data Tabel -->
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    new DataTable("#mahasiswa", {
+      responsive: true,
+      scrollCollapse: true,
+      paging: false,
+      scrollY: "500px",
+      searching: false,
+    });
+  });
+</script>
+<!-- Format Data Tabel -->
+{% endblock add_js %} 

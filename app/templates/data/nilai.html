@@ -1,68 +1,112 @@
 {% extends 'master/base.html' %}
 {% block content %}
 <div class="container-fluid">
-  <h4 class="mb-3">Daftar Nilai Mahasiswa</h4>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">
+      <a href="{% url 'home' %}">Dashboard</a>
+    </li>
+    <li class="breadcrumb-item active">Daftar Nilai Mahasiswa</li>
+  </ol>
 
-  <form method="get" class="mb-3 d-flex gap-2">
-    <select name="prodi" id="prodi" class="form-select">
-      <option value="">-- Pilih Program Studi --</option>
-      {% for p in prodi_list %}
-        <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>
-          {{ p.namaprodi }}
-        </option>
-      {% endfor %}
-    </select>
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Nilai Mahasiswa</h4>
+        </div>
+        <div class="card-body">
+          <form method="get" class="mb-3 d-flex gap-2">
+            <select name="prodi" id="prodi" class="form-select w-25">
+              <option value="">-- Pilih Program Studi --</option>
+              {% for p in prodi_list %}
+                <option value="{{ p.id }}" {% if p.id|stringformat:'s' == selected_prodi %}selected{% endif %}>
+                  {{ p.namaprodi }}
+                </option>
+              {% endfor %}
+            </select>
 
-    <select name="mahasiswa" id="mahasiswa" class="form-select" {% if not selected_prodi %}disabled{% endif %}>
-      {% if not selected_prodi %}
-        <option value="">-- Pilih Program Studi terlebih dahulu --</option>
-      {% else %}
-        <option value="">-- Semua Mahasiswa --</option>
-        {% for mhs in mahasiswa_list %}
-          <option value="{{ mhs.id }}" {% if mhs.id|stringformat:'s' == selected_mahasiswa %}selected{% endif %}>
-            {{ mhs.nama }}
-          </option>
-        {% endfor %}
-      {% endif %}
-    </select>
-    <button type="submit" class="btn btn-primary">Tampilkan</button>
-  </form>
-<p><strong>IPK:</strong> {{ nilai_list.first.mahasiswa.hitung_ipk }}</p>
-<td>{{ n.mahasiswa.hitung_ipk }}</td>
+            <select name="mahasiswa" id="mahasiswa" class="form-select w-25" {% if not selected_prodi %}disabled{% endif %}>
+              {% if not selected_prodi %}
+                <option value="">-- Pilih Program Studi terlebih dahulu --</option>
+              {% else %}
+                <option value="">-- Semua Mahasiswa --</option>
+                {% for mhs in mahasiswa_list %}
+                  <option value="{{ mhs.id }}" {% if mhs.id|stringformat:'s' == selected_mahasiswa %}selected{% endif %}>
+                    {{ mhs.nama }}
+                  </option>
+                {% endfor %}
+              {% endif %}
+            </select>
 
-  <table class="table table-bordered table-sm">
-  <thead class="table-light">
-    <tr>
-      <th>No</th>
-      <th>NIM</th>
-      <th>Nama Mahasiswa</th>
-      <th>Kode MK</th>
-      <th>Nama Mata Kuliah</th>
-      <th>SKS</th>
-      <th>Nilai Huruf</th>
-      <th>Nilai Angka</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for n in nilai_list %}
-      <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ n.mahasiswa.nim }}</td>
-        <td>{{ n.mahasiswa.nama }}</td>
-        <td>{{ n.matakuliah.kodemk }}</td>
-        <td>{{ n.matakuliah.namamk }}</td>
-        <td>{{ n.matakuliah.sks }}</td>
-        <td>{{ n.nilai_huruf }}</td>
-        <td>{{ n.nilai_angka }}</td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="8" class="text-center text-muted">Tidak ada data nilai.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+            <button type="submit" class="btn btn-sm btn-primary">Tampilkan</button>
+          </form>
+
+          <div class="card border-0 shadow-sm p-2 mb-1" style="max-width: 300px;">
+            <div class="card-body text-center">
+              <h6 class="text-success mb-1">Indeks Prestasi Kumulatif (IPK)</h6>
+              <hr>
+              <h2 class="fw-bold text-primary mb-0">
+                {{ nilai_list.first.mahasiswa.hitung_ipk }}
+              </h2>
+
+              {% with ipk=nilai_list.first.mahasiswa.hitung_ipk %}
+                {% if ipk >= 3.51 %}
+                  <p class="text-success mt-1 mb-0"><strong>Dengan Pujian</strong></p>
+                {% elif ipk >= 3.01 %}
+                  <p class="text-info mt-1 mb-0"><strong>Sangat Memuaskan</strong></p>
+                {% elif ipk >= 2.76 %}
+                  <p class="text-warning mt-1 mb-0"><strong>Memuaskan</strong></p>
+                {% else %}
+                  <p class="text-secondary mt-1 mb-0"><strong>Cukup</strong></p>
+                {% endif %}
+              {% endwith %}
+
+              <hr>
+            </div>
+          </div>
+
+
+          {% comment %} <p><strong>IPK:</strong> {{ nilai_list.first.mahasiswa.hitung_ipk }}</p>
+          <td>{{ n.mahasiswa.hitung_ipk }}</td> {% endcomment %}
+
+          <table class="table table-bordered table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>No</th>
+                <th>NIM</th>
+                <th>Nama Mahasiswa</th>
+                <th>Kode MK</th>
+                <th>Nama Mata Kuliah</th>
+                <th>SKS</th>
+                <th>Nilai Huruf</th>
+                <th>Nilai Angka</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for n in nilai_list %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ n.mahasiswa.nim }}</td>
+                  <td>{{ n.mahasiswa.nama }}</td>
+                  <td>{{ n.matakuliah.kodemk }}</td>
+                  <td>{{ n.matakuliah.namamk }}</td>
+                  <td>{{ n.matakuliah.sks }}</td>
+                  <td>{{ n.nilai_huruf }}</td>
+                  <td>{{ n.nilai_angka }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">Tidak ada data nilai.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
 {% endblock content %}
 {% block add_js %}
 <script>

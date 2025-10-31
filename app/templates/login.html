@@ -22,7 +22,10 @@
 </head>
 <body class="flex items-center justify-center min-h-screen">
   <div class="fade-in bg-white/20 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md text-white">
-    <h2 class="text-3xl font-bold mb-6 text-center">Selamat Datang</h2>
+    <h2 class="text-3xl font-bold mb-2 text-center">Sistem Informasi</h2>
+    <hr>
+    <h5 class="text text-center">Ijazah dan Transkrip Nilai</h5>
+    <h5 class="text text-center">Universitas Mayasari Bakti</h5>
     <form method="POST" action="{% url 'login' %}" class="space-y-5">
       {% csrf_token %}
       <div>
@@ -42,15 +45,15 @@
         Masuk
       </button>
 
-      <div class="text-center mt-4">
+      {% comment %} <div class="text-center mt-4">
         <a href="#" class="text-sm text-gray-200 hover:text-white transition">Lupa password?</a>
-      </div>
+      </div> {% endcomment %}
     </form>
 
-    <div class="mt-6 text-center text-sm text-gray-200">
+    {% comment %} <div class="mt-6 text-center text-sm text-gray-200">
       Belum punya akun?
       <a href="" class="text-white font-medium hover:underline">Daftar sekarang</a>
-    </div>
+    </div> {% endcomment %}
   </div>
 </body>
 </html>
