@@ -46,7 +46,7 @@
               <h6 class="text-success mb-1">Indeks Prestasi Kumulatif (IPK)</h6>
               <hr>
               <h2 class="fw-bold text-primary mb-0">
-                {{ nilai_list.first.mahasiswa.hitung_ipk }}
+                {{ nilai_list.first.mahasiswa.hitung_ipk|floatformat:2 }}
               </h2>
 
               {% with ipk=nilai_list.first.mahasiswa.hitung_ipk %}
@@ -60,7 +60,6 @@
                   <p class="text-danger mt-1 mb-0"><strong>Cukup</strong></p>
                 {% endif %}
               {% endwith %}
-
               <hr>
             </div>
           </div>

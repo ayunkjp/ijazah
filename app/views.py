@@ -261,7 +261,6 @@ def mahasiswa_add(request):
 def update_mahasiswa(request, id):
     mahasiswa = get_object_or_404(Mahasiswa, id=id)
     if request.method == 'POST':
-        mahasiswa.nim = request.POST.get('nim')
         mahasiswa.nama = request.POST.get('nama')
         mahasiswa.nik = request.POST.get('nik')
         mahasiswa.tempatlahir = request.POST.get('tempatlahir')
@@ -325,7 +324,7 @@ def matakuliah_add(request):
 
         prodi_obj = get_object_or_404(Prodi, id=prodi_id)
 
-        Mahasiswa.objects.create(
+        MataKuliah.objects.create(
             prodi=prodi_obj,
             kodemk=kodemk,
             namamk=namamk,
@@ -858,10 +857,12 @@ def generate_transkrip_pdf(request, mhs_id):
 
     style_value = ParagraphStyle(
         name='Value',
-        fontName='Times',
+        fontName='Times-Roman',
         fontSize=12,
         leading=13,
-        alignment=TA_LEFT
+        alignment=TA_LEFT,
+        leftIndent=8,           # jarak dari kiri (awal teks setelah titik dua)
+        firstLineIndent=-8,     # baris pertama mundur kembali sejajar dengan titik dua
     )
 
     # Format tanggal lahir manual ke Bahasa Indonesia
@@ -880,7 +881,7 @@ def generate_transkrip_pdf(request, mhs_id):
         [Paragraph("Nama", style_label), Paragraph(f": {mahasiswa.nama}", style_value)],
         [Paragraph("Nomor Induk Mahasiswa", style_label), Paragraph(f": {mahasiswa.nim}", style_value)],
         [Paragraph("Tempat, Tanggal Lahir", style_label),
-        Paragraph(f": {mahasiswa.tempatlahir},<br/>&nbsp;&nbsp;{tanggal_lahir_fmt}", style_value)],
+        Paragraph(f": {mahasiswa.tempatlahir},<br/>{tanggal_lahir_fmt}", style_value)],
         [Paragraph("Nomor Induk Kependudukan", style_label), Paragraph(f": {mahasiswa.nik}", style_value)],
     ]
 
@@ -889,12 +890,12 @@ def generate_transkrip_pdf(request, mhs_id):
         [Paragraph("Fakultas", style_label), Paragraph(f": {mahasiswa.prodi.fakultas.namafakultas}", style_value)],
         [Paragraph("Program Studi", style_label), Paragraph(f": {mahasiswa.prodi.namaprodi}", style_value)],
         [Paragraph("Akreditasi", style_label),
-        Paragraph(f": {mahasiswa.prodi.akreditasi}<br/>&nbsp;&nbsp;{mahasiswa.prodi.noakreditasi}", style_value)],
+        Paragraph(f": {mahasiswa.prodi.akreditasi}<br/>{mahasiswa.prodi.noakreditasi}", style_value)],
         [Paragraph("Tanggal Lulus", style_label), Paragraph(f": {tanggal_yudisium_fmt}", style_value)],
     ]
 
     # Buat dua tabel (kiri dan kanan)
-    tabel_kiri = Table(info_kiri_data, colWidths=[5.2*cm, 8*cm])
+    tabel_kiri = Table(info_kiri_data, colWidths=[5.2*cm, 5*cm])
     tabel_kanan = Table(info_kanan_data, colWidths=[3*cm, 8*cm])
 
     for t in [tabel_kiri, tabel_kanan]:
@@ -963,7 +964,7 @@ def generate_transkrip_pdf(request, mhs_id):
                 data.append(row)
             else:
                 data.append(['', '', '', '', '', ''])
-        col_widths = [0.8*cm, 1.4*cm, None, 0.8*cm, 1*cm, 1*cm]
+        col_widths = [0.8*cm, 1.6*cm, None, 0.8*cm, 1*cm, 1*cm]
         t = Table(data, colWidths=col_widths, repeatRows=1)
         t.setStyle(TableStyle([
             ('FONTNAME', (0,0), (-1,-1), 'Times'),
@@ -1189,10 +1190,12 @@ def generate_transkrip_pdfen(request, mhs_id):
 
     style_value = ParagraphStyle(
         name='Value',
-        fontName='Times',
+        fontName='Times-Roman',
         fontSize=12,
         leading=13,
-        alignment=TA_LEFT
+        alignment=TA_LEFT,
+        leftIndent=8,           # jarak dari kiri (awal teks setelah titik dua)
+        firstLineIndent=-8,     # baris pertama mundur kembali sejajar dengan titik dua
     )
 
     # Format tanggal lahir manual ke Bahasa inggris
@@ -1204,7 +1207,7 @@ def generate_transkrip_pdfen(request, mhs_id):
         [Paragraph("Name", style_label), Paragraph(f": {mahasiswa.nama}", style_value)],
         [Paragraph("Student Identification Number", style_label), Paragraph(f": {mahasiswa.nim}", style_value)],
         [Paragraph("Born in", style_label),
-        Paragraph(f": {mahasiswa.tempatlahir},<br/>&nbsp;&nbsp;{tgl_lahir}", style_value)],
+        Paragraph(f": {mahasiswa.tempatlahir},<br/>{tgl_lahir}", style_value)],
         [Paragraph("National Identification Number", style_label), Paragraph(f": {mahasiswa.nik}", style_value)],
     ]
 
@@ -1213,12 +1216,12 @@ def generate_transkrip_pdfen(request, mhs_id):
         [Paragraph("Faculty", style_label), Paragraph(f": {mahasiswa.prodi.fakultas.dekan_en}", style_value)],
         [Paragraph("Study Program", style_label), Paragraph(f": {mahasiswa.prodi.namaprodi_en}", style_value)],
         [Paragraph("Accreditation", style_label),
-        Paragraph(f": {mahasiswa.prodi.akreditasi}<br/>&nbsp;&nbsp;{mahasiswa.prodi.noakreditasi}", style_value)],
+        Paragraph(f": {mahasiswa.prodi.akreditasi}<br/>{mahasiswa.prodi.noakreditasi}", style_value)],
         [Paragraph("Graduation Date", style_label), Paragraph(f": {tgl_yudisium}", style_value)],
     ]
 
     # Buat dua tabel (kiri dan kanan)
-    tabel_kiri = Table(info_kiri_data, colWidths=[5.4*cm, 8*cm])
+    tabel_kiri = Table(info_kiri_data, colWidths=[5.4*cm, 5*cm])
     tabel_kanan = Table(info_kanan_data, colWidths=[3*cm, 8*cm])
 
     for t in [tabel_kiri, tabel_kanan]:
@@ -1287,7 +1290,7 @@ def generate_transkrip_pdfen(request, mhs_id):
                 data.append(row)
             else:
                 data.append(['', '', '', '', '', ''])
-        col_widths = [0.8*cm, 1.4*cm, None, 0.8*cm, 1*cm, 1*cm]
+        col_widths = [0.8*cm, 1.6*cm, None, 0.8*cm, 1*cm, 1*cm]
         t = Table(data, colWidths=col_widths, repeatRows=1)
         t.setStyle(TableStyle([
             ('FONTNAME', (0,0), (-1,-1), 'Times'),
@@ -1423,9 +1426,9 @@ def generate_transkrip_pdfen(request, mhs_id):
     # Data TTD 3 kolom
     ttd_data = [
         [
-            f"Dekan,\nFakultas {mahasiswa.prodi.fakultas.namafakultas}\n\n\n\n\n\n{mahasiswa.prodi.fakultas.namadekan}\nNIPT: {mahasiswa.prodi.fakultas.nipt}",
+            f"Dean,\nFaculty of {mahasiswa.prodi.fakultas.dekan_en}\n\n\n\n\n\n{mahasiswa.prodi.fakultas.namadekan}\nNIPT: {mahasiswa.prodi.fakultas.nipt}",
             kota_foto,
-            f"Rektor,\n\n\n\n\n\n\n{nama_rektor}\nNIPT: {nipt_rektor}"
+            f"Rector,\n\n\n\n\n\n\n{nama_rektor}\nNIPT: {nipt_rektor}"
         ]
     ]
 
@@ -1705,7 +1708,7 @@ def generate_ijazah(request, mhs_id):
     # ========== TANGGAL ==========
     elements.append(Paragraph(f'Diterbitkan di Tasikmalaya, <font face="Times-Bold">{tgl_wisuda}.</font>', styles['Konten2']))
     elements.append(Paragraph(
-        f'<font face="Times-Italic">Issued in Tasikmalaya on </font>.'
+        f'<font face="Times-Italic">Issued in Tasikmalaya on </font>'
         f'<font face="Times-BoldItalic">{formatted_date1}</font>.',
         styles['Konten2']
     ))
